@@ -1,12 +1,16 @@
 export default function BodyButton() {
   const handleClick = () => {
     fetch("https://journal-api-cxui.onrender.com/auth/signin", {
-      method: "POST", // Adjust the HTTP method as per your API endpoint requirements
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        email: "jose3@email.com",
-        password: "password", // Adjust the headers as needed
       },
+      body: JSON.stringify({
+        user: {
+          email: "jose3@email.com",
+          password: "password",
+        },
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -21,7 +25,7 @@ export default function BodyButton() {
 
   return (
     <>
-      <button className="body-btn btn-link" onClick={handleClick}>
+      <button type="button" className="body-btn btn-link" onClick={handleClick}>
         <h2 className="font-color-primary">For Today</h2>
       </button>
     </>
