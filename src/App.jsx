@@ -1,7 +1,39 @@
-import React, { useState } from "react";
-import BodyButton from "./components/BodyButton";
+import React, { useState, useEffect } from "react";
+import MainDash from "./pages/MainDash";
+import Header from "./components/Header";
+import LoginPage from "./pages/LoginPage";
+
 function App() {
+  const rememberMe = localStorage.getItem("token");
+
   const [activeTab, setActiveTab] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!rememberMe);
+  const [userDetails, setUserDetails] = useState({});
+
+  useEffect(() => {
+    // Check for token in storage
+    const storedToken = localStorage.getItem("token");
+    const storedUserId = localStorage.getItem("userId");
+    if (storedToken && storedUserId) {
+      setIsLoggedIn(true);
+
+      const url = `http://localhost:3000/user/${storedUserId}`;
+      fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${storedToken}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setUserDetails(data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }, []);
 
   const handleTabClick = (index) => {
     setActiveTab(index);
@@ -10,22 +42,12 @@ function App() {
   return (
     <>
       <div className="app-wrapper border-radius-1 padding-y-2 padding-x-1 display-flex flex-column">
-        <div className="header display-flex flex-row bb-1 mb-7">
-          <h1 className="font-color-primary">Hello, Jose</h1>
-          <button className="header-btn" />
-        </div>
-        <div className="body">
-          <div className="slider">
-            {/* Today's tasks here*/}
-            <BodyButton />
-            {/* function category.each do |f|  */}
-            <BodyButton />
-          </div>
-          <div className="">{/* Task Buttons task.each do |f| */}</div>
-        </div>
-        <div className="footer">
-          <h1 className="font-color-primary"></h1>
-        </div>
+        <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        {isLoggedIn ? (
+          <MainDash />
+        ) : (
+          <LoginPage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        )}
       </div>
     </>
   );

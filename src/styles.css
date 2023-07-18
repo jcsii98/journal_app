@@ -120,7 +120,7 @@ body {
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.body {
+.main-dash {
   width: 100%;
   height: 100%;
 }
@@ -128,6 +128,17 @@ body {
 .footer {
   width: 100%;
   height: 60px;
+}
+
+/* forms */
+
+.form-container {
+  width: 300px;
+}
+.form-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 /* buttons */
 
@@ -179,4 +190,8 @@ body {
 
 .font-color-primary {
   color: #242325;
+}
+
+.font-color-secondary {
+  color: #242325c2;
 }
