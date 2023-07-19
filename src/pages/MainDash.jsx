@@ -1,8 +1,10 @@
 import BodyButton from "../components/BodyButton";
 import React, { useState, useEffect } from "react";
+import CategoryForm from "../components/CategoryForm";
 
 export default function MainDash() {
   const [categories, setCategories] = useState([]);
+  const [addCategory, setAddCategory] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -24,7 +26,9 @@ export default function MainDash() {
         console.error(error);
       });
   }, []);
-
+  const toggleAddCategory = () => {
+    setAddCategory((prevState) => !prevState);
+  };
   return (
     <>
       <div className="main-dash">
@@ -37,12 +41,31 @@ export default function MainDash() {
           </>
         ) : (
           <>
-            <h2 className="font-color-secondary">Add a Category</h2>
+            {" "}
+            {addCategory ? (
+              // addCategory Form here
+              <CategoryForm />
+            ) : (
+              <>
+                <div className="my-1">
+                  {" "}
+                  <h2 className="font-color-secondary">
+                    Pretty quiet today...
+                  </h2>
+                </div>
+              </>
+            )}
           </>
         )}
 
         <div className="footer">
-          <h1 className="font-color-primary"></h1>
+          <button
+            onClick={toggleAddCategory}
+            type="button"
+            className="btn-link"
+          >
+            <h3 className="font-color-primary">Add a Category</h3>
+          </button>
         </div>
       </div>
     </>

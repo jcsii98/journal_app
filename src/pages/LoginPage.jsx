@@ -30,12 +30,30 @@ export default function LoginPage(props) {
       .then((data) => {
         console.log(data);
         if (data.token) {
+          // store token in localstorage
           localStorage.setItem("token", data.token);
+          console.log("Token: " + localStorage.getItem("token"));
+
+          // store userData
+          const userProperties = ["id", "email", "name"];
+          userProperties.forEach((property) => {
+            localStorage.setItem(
+              `user${property.charAt(0).toUpperCase() + property.slice(1)}`,
+              data.user[property]
+            );
+            console.log(
+              `${property.charAt(0).toUpperCase() + property.slice(1)}: ` +
+                localStorage.getItem(
+                  `user${property.charAt(0).toUpperCase() + property.slice(1)}`
+                )
+            );
+          });
           // localStorage.setItem("userId", data.user.id);
           // localStorage.setItem("userEmail", data.user.email);
-          console.log(localStorage.getItem("userId"));
-          console.log(localStorage.getItem("token"));
-          console.log(localStorage.getItem("userEmail"));
+          // localStorage.setItem("userName", data.user.name);
+          // console.log("Name: " + localStorage.getItem("userName"));
+          // console.log("ID: " + localStorage.getItem("userId"));
+
           setIsLoggedIn(true);
         }
       })
@@ -55,7 +73,7 @@ export default function LoginPage(props) {
           <form onSubmit={handleSubmit} className="font-color-primary">
             <div className="mb-7">
               <div className="form-group mb-3">
-                <label htmlFor="exampleInputEmail1">Email address: </label>
+                <label htmlFor="email">Email address: </label>
                 <input
                   type="text"
                   name="email"
@@ -66,7 +84,7 @@ export default function LoginPage(props) {
                 />
               </div>
               <div className="form-group mb-3">
-                <label htmlFor="exampleInputPassword1">Password: </label>
+                <label htmlFor="password">Password: </label>
                 <input
                   type="password"
                   name="password"

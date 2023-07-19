@@ -41,7 +41,7 @@ function App() {
 
   return (
     <>
-      <div className="app-wrapper border-radius-1 padding-y-2 padding-x-1 display-flex flex-column">
+      <div className="app-wrapper border-radius-1 py-2 px-1 display-flex flex-column">
         <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
         {isLoggedIn ? (
           <MainDash />
