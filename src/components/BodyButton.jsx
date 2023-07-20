@@ -68,7 +68,7 @@ export default function BodyButton(props) {
           <img
             className="mx-1 hover-scale"
             style={{ height: "15px", filter: "invert(100%)" }}
-            src={edit}
+            src="edit.png"
             alt="Edit"
             onClick={setToggleEdit}
           />
