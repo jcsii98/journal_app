@@ -3,6 +3,7 @@ import React, { useState } from "react";
 export default function LoginPage(props) {
   const { isTokenValid, setIsTokenValid, isLoggedIn, setIsLoggedIn } = props;
   const [showSignup, setShowSignup] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,13 +20,8 @@ export default function LoginPage(props) {
     setShowSignup((prevState) => !prevState);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    console.log("handleSubmit called");
-    const url = showSignup
-      ? "https://journal-api-cxui.onrender.com/auth/signup"
-      : "https://journal-api-cxui.onrender.com/auth/signin";
-
+  const handleSignup = (formData) => {
+    const url = "https://journal-api-cxui.onrender.com/auth/signup";
     fetch(url, {
       method: "POST",
       headers: {
@@ -33,19 +29,70 @@ export default function LoginPage(props) {
       },
       body: JSON.stringify({
         user: {
-          ...(showSignup && {
-            name: formData.name,
-            password_confirmation: formData.password_confirmation,
-          }),
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          password_confirmation: formData.password_confirmation,
+        },
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          if (response.status === 422) {
+            return response.json().then((data) => {
+              throw new Error(data.error); // Throw an error with the server's error message
+            });
+          } else {
+            throw new Error("Network response was not ok");
+          }
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data); // Display the response data in the console
+
+        if (data.user) {
+          // Handle successful signup
+          localStorage.setItem("token", data.token);
+          // Update your state or perform any other actions here if needed
+        }
+      })
+      .catch((error) => {
+        console.error(error); // Log any network or other errors
+
+        // Check if the error message indicates a duplicate email
+        if (error.message.includes("UNIQUE constraint failed: users.email")) {
+          setError("Email already exists");
+        } else {
+          setError("An error occurred. Please try again.");
+        }
+      });
+  };
+
+  const handleSignin = (formData) => {
+    const url = "https://journal-api-cxui.onrender.com/auth/signin";
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user: {
           email: formData.email,
           password: formData.password,
         },
       }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
       .then((data) => {
         console.log(data);
-        if (data.token) {
+        if (data.user) {
+          // Successful authentication
           // store token in localstorage
           localStorage.setItem("token", data.token);
           console.log("Token: " + localStorage.getItem("token"));
@@ -69,8 +116,18 @@ export default function LoginPage(props) {
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error(error);
+        setError("An error occured. Please try again.");
       });
+  };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log("handleSubmit called");
+    if (!showSignup) {
+      handleSignin(formData);
+    } else {
+      handleSignup(formData);
+    }
   };
 
   return (
@@ -138,6 +195,7 @@ export default function LoginPage(props) {
                 </div>
               </>
             )}
+            {error && <div className="text-danger">{error}</div>}
           </div>
 
           <div className="button-container">
