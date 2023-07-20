@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
   const [isTokenValid, setIsTokenValid] = useState(false);
   const rememberMe = localStorage.getItem("token");
   const [isLoggedIn, setIsLoggedIn] = useState(!!rememberMe);
@@ -26,22 +27,25 @@ function App() {
         .then((response) => response.json())
         .then((data) => {
           console.log(data);
-          if (data.token == storedToken) {
+          if (data.token === storedToken) {
             setUserDetails(data);
             setIsTokenValid(true);
           } else {
             setIsTokenValid(false);
             localStorage.clear();
           }
+          setIsLoading(false); // Hide the loading screen after token validation
         })
         .catch((error) => {
           setIsTokenValid(false);
           localStorage.clear();
           console.error(error);
+          setIsLoading(false); // Hide the loading screen in case of an error
         });
     } else {
       setIsTokenValid(false);
       localStorage.clear();
+      setIsLoading(false); // Hide the loading screen when there's no token
     }
   };
 
@@ -51,34 +55,42 @@ function App() {
 
   return (
     <>
-      <div className="outer-wrapper">
-        <Header
-          addCategory={addCategory}
-          setAddCategory={setAddCategory}
-          isTokenValid={isTokenValid}
-          setIsTokenValid={setIsTokenValid}
-          isLoggedIn={isLoggedIn}
-          setIsLoggedIn={setIsLoggedIn}
-        />
-        <div className="app-wrapper border-radius-1 py-4 px-4 display-flex flex-column">
-          {isTokenValid && isLoggedIn ? (
-            <MainDash
+      {isLoading ? (
+        <>
+          <h1 className="fw-700 font-color-secondary">Loading...</h1>
+        </>
+      ) : (
+        <>
+          <div className="outer-wrapper">
+            <Header
               addCategory={addCategory}
               setAddCategory={setAddCategory}
-              setIsTokenValid={setIsTokenValid}
-              isLoggedIn={isLoggedIn}
-              setIsLoggedIn={setIsLoggedIn}
-            />
-          ) : (
-            <LoginPage
-              setIsTokenValid={setIsTokenValid}
               isTokenValid={isTokenValid}
+              setIsTokenValid={setIsTokenValid}
               isLoggedIn={isLoggedIn}
               setIsLoggedIn={setIsLoggedIn}
             />
-          )}
-        </div>
-      </div>
+            <div className="app-wrapper border-radius-1 py-4 px-4 display-flex flex-column">
+              {isTokenValid && isLoggedIn ? (
+                <MainDash
+                  addCategory={addCategory}
+                  setAddCategory={setAddCategory}
+                  setIsTokenValid={setIsTokenValid}
+                  isLoggedIn={isLoggedIn}
+                  setIsLoggedIn={setIsLoggedIn}
+                />
+              ) : (
+                <LoginPage
+                  setIsTokenValid={setIsTokenValid}
+                  isTokenValid={isTokenValid}
+                  isLoggedIn={isLoggedIn}
+                  setIsLoggedIn={setIsLoggedIn}
+                />
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

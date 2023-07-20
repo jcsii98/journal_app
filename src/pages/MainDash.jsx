@@ -33,6 +33,7 @@ export default function MainDash(props) {
           console.log(data.categories);
           setCategories(data.categories);
           console.log("SetCategories called");
+          setIsLoading(false);
         }
       })
       .catch((error) => {
@@ -138,17 +139,19 @@ export default function MainDash(props) {
 
   useEffect(() => {
     const navContainer = navContainerRef.current;
-    navContainer.addEventListener("wheel", handleScroll);
-    navContainer.addEventListener("mouseenter", enableScrollOnHover);
-    navContainer.addEventListener("mouseleave", disableScrollOnHover);
+    if (navContainer) {
+      navContainer.addEventListener("wheel", handleScroll);
+      navContainer.addEventListener("mouseenter", enableScrollOnHover);
+      navContainer.addEventListener("mouseleave", disableScrollOnHover);
 
-    return () => {
-      navContainer.removeEventListener("wheel", handleScroll);
-      navContainer.removeEventListener("mouseenter", enableScrollOnHover);
-      navContainer.removeEventListener("mouseleave", disableScrollOnHover);
-    };
-  }, []);
-
+      return () => {
+        // Clean up the event listeners when the component unmounts
+        navContainer.removeEventListener("wheel", handleScroll);
+        navContainer.removeEventListener("mouseenter", enableScrollOnHover);
+        navContainer.removeEventListener("mouseleave", disableScrollOnHover);
+      };
+    }
+  }, [navContainerRef.current]);
   return (
     <>
       <div className="main-dash">
@@ -157,7 +160,10 @@ export default function MainDash(props) {
           className="slider-nav-container"
           style={{ scrollBehavior: "smooth" }}
         >
-          {categories.length > 0 ? (
+          {isLoading ? (
+            <>Loading</>
+          ) : // Rest of your code for categories and accordion
+          categories.length > 0 ? (
             <div
               className="slider-nav btn-group btn-group-toggle"
               data-toggle="buttons"
@@ -170,8 +176,8 @@ export default function MainDash(props) {
                   setToggleEdit={setToggleEdit}
                   setIsLoading={setIsLoading}
                   category={category}
-                  activeTab={activeTab} // Pass the activeTab state as a prop
-                  handleActiveTabChange={handleActiveTabChange} // Pass the function to change active tab as a prop
+                  activeTab={activeTab}
+                  handleActiveTabChange={handleActiveTabChange}
                   setCategoryData={setCategoryData}
                 />
               ))}
@@ -182,55 +188,12 @@ export default function MainDash(props) {
             </div>
           )}
         </div>
-        {addCategory || toggleEdit ? (
-          <CategoryForm
-            handleSubmitCategory={handleSubmitCategory}
-            setAddCategory={setAddCategory}
-          />
-        ) : (
-          // If categoryData is available, display the tasks
-          // If not, show a loading message or any other UI indication
-          <>
-            {isLoading ? (
-              <p>Loading...</p>
-            ) : (
-              categoryData && (
-                <div className="accordion mt-3">
-                  {categoryData.map((category) => (
-                    <div
-                      className="accordion-item"
-                      id={`accordionExample-${category.id}`}
-                      key={category.id}
-                    >
-                      <h2 className="accordion-header">
-                        <button
-                          className="accordion-button"
-                          type="button"
-                          data-bs-toggle="collapse"
-                          data-bs-target={`#collapse-${category.id}`}
-                          aria-expanded="true"
-                          aria-controls={`collapse-${category.id}`}
-                        >
-                          {category.name}
-                        </button>
-                      </h2>
-                      <div
-                        id={`collapse-${category.id}`}
-                        className="accordion-collapse collapse"
-                        data-bs-parent={`#accordionExample-${category.id}`}
-                      >
-                        <div className="accordion-body">{category.body}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            )}
-          </>
+        {addCategory && (
+          <CategoryForm handleSubmitCategory={handleSubmitCategory} />
         )}
         <div className="footer">
           <button type="button" className="btn-primary btn">
-            Submit
+            Add Task
           </button>
         </div>
       </div>
