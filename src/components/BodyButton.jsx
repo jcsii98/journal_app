@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import edit from "../assets/Edit.png";
+// import edit from "../assets/Edit.png";
 export default function BodyButton(props) {
   const {
     setIsTokenValid,
@@ -64,7 +64,7 @@ export default function BodyButton(props) {
           autoComplete="off"
           style={{ display: "none" }}
         />
-        {isActive && (
+        {/* {isActive && (
           <img
             className="mx-1 hover-scale"
             style={{ height: "15px", filter: "invert(100%)" }}
@@ -72,7 +72,7 @@ export default function BodyButton(props) {
             alt="Edit"
             onClick={setToggleEdit}
           />
-        )}
+        )} */}
         {buttonName}
       </label>
     </>
