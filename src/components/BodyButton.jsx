@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Edit from "../assets/Edit.png";
+import edit from "../assets/Edit.png";
 export default function BodyButton(props) {
   const {
     setIsTokenValid,
@@ -68,7 +68,7 @@ export default function BodyButton(props) {
           <img
             className="mx-1 hover-scale"
             style={{ height: "15px", filter: "invert(100%)" }}
-            src={Edit}
+            src={edit}
             alt="Edit"
             onClick={setToggleEdit}
           />
