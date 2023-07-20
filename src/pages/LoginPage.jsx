@@ -1,26 +1,42 @@
 import React, { useState } from "react";
 
 export default function LoginPage(props) {
-  const { isLoggedIn, setIsLoggedIn } = props;
+  const { isTokenValid, setIsTokenValid, isLoggedIn, setIsLoggedIn } = props;
+  const [showSignup, setShowSignup] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    name: "",
+    password_confirmation: "",
   });
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
+  const handleSignupToggle = (event) => {
+    event.preventDefault();
+    setShowSignup((prevState) => !prevState);
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    fetch("http://127.0.0.1:3000/auth/signin", {
+    const url = showSignup
+      ? "http://127.0.0.1:3000/auth/signup"
+      : "http://127.0.0.1:3000/auth/signin";
+
+    fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         user: {
+          ...(showSignup && {
+            name: formData.name,
+            password_confirmation: formData.password_confirmation,
+          }),
           email: formData.email,
           password: formData.password,
         },
@@ -48,18 +64,12 @@ export default function LoginPage(props) {
                 )
             );
           });
-          // localStorage.setItem("userId", data.user.id);
-          // localStorage.setItem("userEmail", data.user.email);
-          // localStorage.setItem("userName", data.user.name);
-          // console.log("Name: " + localStorage.getItem("userName"));
-          // console.log("ID: " + localStorage.getItem("userId"));
-
+          setIsTokenValid(true);
           setIsLoggedIn(true);
         }
       })
       .catch((error) => {
-        // Handle any errors that occur during the request
-        console.error(error);
+        console.log(error);
       });
   };
 
@@ -67,40 +77,90 @@ export default function LoginPage(props) {
     <>
       <div className="bb-1 mb-1">
         <div className="mb-3">
-          <h2 className="font-color-primary">Log in</h2>
+          <h2 className="font-color-primary">
+            {showSignup ? <>Signup</> : <>Log in</>}
+          </h2>
         </div>
-        <div className="form-container">
-          <form onSubmit={handleSubmit} className="font-color-primary">
-            <div className="mb-7">
-              <div className="form-group mb-3">
-                <label htmlFor="email">Email address: </label>
-                <input
-                  type="text"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="form-control"
-                  placeholder="sample@email.com"
-                />
-              </div>
-              <div className="form-group mb-3">
-                <label htmlFor="password">Password: </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="form-control"
-                  placeholder="Password"
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="font-color-primary">
+          <div className="mb-3">
+            {showSignup && (
+              <>
+                <div className="form-group mb-1">
+                  <label htmlFor="name">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="Name"
+                  />
+                </div>
+              </>
+            )}
+            <div className="form-group mb-1">
+              <label htmlFor="email">Email</label>
+              <input
+                type="text"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="form-control"
+                placeholder="sample@email.com"
+              />
+            </div>
+            <div className="form-group mb-1">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="form-control"
+                placeholder="Password"
+              />
             </div>
 
+            {showSignup && (
+              <>
+                <div className="form-group mb-1">
+                  <label htmlFor="password-confirmation">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    name="password_confirmation"
+                    value={formData.password_confirmation}
+                    onChange={handleChange}
+                    className="form-control"
+                    placeholder="Password confirmation"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="button-container">
+            {" "}
             <button type="submit" className="btn btn-primary">
               Submit
             </button>
-          </form>
-        </div>
+            <p className="text-muted">
+              <button
+                type="button"
+                onClick={handleSignupToggle}
+                className="mx-3 btn btn-link"
+              >
+                {" "}
+                {showSignup ? (
+                  <>Already have an account? Login here</>
+                ) : (
+                  <>Don't have an account? Sign up here</>
+                )}
+              </button>
+            </p>
+          </div>
+        </form>
       </div>
     </>
   );

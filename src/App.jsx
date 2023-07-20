@@ -2,21 +2,18 @@ import React, { useState, useEffect } from "react";
 import MainDash from "./pages/MainDash";
 import Header from "./components/Header";
 import LoginPage from "./pages/LoginPage";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
+  const [isTokenValid, setIsTokenValid] = useState(false);
   const rememberMe = localStorage.getItem("token");
-
-  const [activeTab, setActiveTab] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(!!rememberMe);
   const [userDetails, setUserDetails] = useState({});
 
-  useEffect(() => {
-    // Check for token in storage
+  const checkTokenValidity = () => {
     const storedToken = localStorage.getItem("token");
     const storedUserId = localStorage.getItem("userId");
     if (storedToken && storedUserId) {
-      setIsLoggedIn(true);
-
       const url = `http://localhost:3000/user/${storedUserId}`;
       fetch(url, {
         method: "GET",
@@ -27,27 +24,50 @@ function App() {
       })
         .then((response) => response.json())
         .then((data) => {
-          setUserDetails(data);
+          console.log(data);
+          if (data.token) {
+            setUserDetails(data);
+            setIsTokenValid(true);
+          } else {
+            setIsTokenValid(false);
+            localStorage.clear();
+          }
         })
         .catch((error) => {
+          setIsTokenValid(false);
+          localStorage.clear();
           console.error(error);
         });
+    } else {
+      setIsTokenValid(false);
+      localStorage.clear();
     }
-  }, []);
-
-  const handleTabClick = (index) => {
-    setActiveTab(index);
   };
+
+  useEffect(() => {
+    checkTokenValidity();
+  }, []); // Empty dependency array to call the function once on initial render
 
   return (
     <>
-      <div className="app-wrapper border-radius-1 py-2 px-1 display-flex flex-column">
-        <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-        {isLoggedIn ? (
-          <MainDash />
-        ) : (
-          <LoginPage isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-        )}
+      <div className="outer-wrapper">
+        <Header
+          setIsTokenValid={setIsTokenValid}
+          isLoggedIn={isLoggedIn}
+          setIsLoggedIn={setIsLoggedIn}
+        />
+        <div className="app-wrapper border-radius-1 py-4 px-4 display-flex flex-column">
+          {isTokenValid ? (
+            <MainDash isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+          ) : (
+            <LoginPage
+              setIsTokenValid={setIsTokenValid}
+              isTokenValid={isTokenValid}
+              isLoggedIn={isLoggedIn}
+              setIsLoggedIn={setIsLoggedIn}
+            />
+          )}
+        </div>
       </div>
     </>
   );

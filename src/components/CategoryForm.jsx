@@ -1,41 +1,35 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-export default function CategoryForm() {
+export default function CategoryForm(props) {
+  const { setAddCategory, handleSubmitCategory } = props;
   const [formData, setFormData] = useState({
-    name: "",
+    category_name: "",
   });
+
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    const storedToken = localStorage.getItem("token");
-    const authorizationHeader = `Token ${storedToken}`;
-    fetch("http://localhost:3000/categories", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authorizationHeader,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    handleSubmitCategory(formData);
   };
+
   return (
     <>
-      <form className="font-color-primary" onSubmit={handleSubmit}>
-        <label htmlFor="category-name">Category Name: </label>
-        <input
-          onChange={handleChange}
-          name="category-name"
-          value={formData.name}
-        />
-      </form>
+      <div className="form-group my-4">
+        {" "}
+        <form className="card font-color-primary" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            className="form-control card-body"
+            onChange={handleChange}
+            name="category_name"
+            value={formData.category_name}
+            placeholder="Category Name"
+          />
+        </form>
+      </div>
     </>
   );
 }
