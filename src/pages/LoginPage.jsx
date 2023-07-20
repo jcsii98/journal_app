@@ -40,7 +40,12 @@ export default function LoginPage(props) {
         if (!response.ok) {
           if (response.status === 422) {
             return response.json().then((data) => {
-              throw new Error(data.error); // Throw an error with the server's error message
+              // Check if the response contains the email error
+              if (data.email && data.email.length > 0) {
+                throw new Error(data.email[0]); // Throw an error with the server's error message
+              } else {
+                throw new Error("An error occurred. Please try again.");
+              }
             });
           } else {
             throw new Error("Network response was not ok");
@@ -60,12 +65,8 @@ export default function LoginPage(props) {
       .catch((error) => {
         console.error(error); // Log any network or other errors
 
-        // Check if the error message indicates a duplicate email
-        if (error.message.includes("UNIQUE constraint failed: users.email")) {
-          setError("Email already exists");
-        } else {
-          setError("An error occurred. Please try again.");
-        }
+        // Display the specific error message
+        setError(error.message);
       });
   };
 
