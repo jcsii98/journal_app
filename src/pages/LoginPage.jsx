@@ -21,10 +21,10 @@ export default function LoginPage(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-
+    console.log("handleSubmit called");
     const url = showSignup
-      ? "http://127.0.0.1:3000/auth/signup"
-      : "http://127.0.0.1:3000/auth/signin";
+      ? "https://journal-api-cxui.onrender.com/auth/signup"
+      : "https://journal-api-cxui.onrender.com/auth/signin";
 
     fetch(url, {
       method: "POST",

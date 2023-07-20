@@ -9,12 +9,13 @@ function App() {
   const rememberMe = localStorage.getItem("token");
   const [isLoggedIn, setIsLoggedIn] = useState(!!rememberMe);
   const [userDetails, setUserDetails] = useState({});
+  const [addCategory, setAddCategory] = useState(false);
 
   const checkTokenValidity = () => {
     const storedToken = localStorage.getItem("token");
     const storedUserId = localStorage.getItem("userId");
     if (storedToken && storedUserId) {
-      const url = `http://localhost:3000/user/${storedUserId}`;
+      const url = `https://journal-api-cxui.onrender.com/user/${storedUserId}`;
       fetch(url, {
         method: "GET",
         headers: {
@@ -25,7 +26,7 @@ function App() {
         .then((response) => response.json())
         .then((data) => {
           console.log(data);
-          if (data.token) {
+          if (data.token == storedToken) {
             setUserDetails(data);
             setIsTokenValid(true);
           } else {
@@ -52,13 +53,22 @@ function App() {
     <>
       <div className="outer-wrapper">
         <Header
+          addCategory={addCategory}
+          setAddCategory={setAddCategory}
+          isTokenValid={isTokenValid}
           setIsTokenValid={setIsTokenValid}
           isLoggedIn={isLoggedIn}
           setIsLoggedIn={setIsLoggedIn}
         />
         <div className="app-wrapper border-radius-1 py-4 px-4 display-flex flex-column">
-          {isTokenValid ? (
-            <MainDash isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+          {isTokenValid && isLoggedIn ? (
+            <MainDash
+              addCategory={addCategory}
+              setAddCategory={setAddCategory}
+              setIsTokenValid={setIsTokenValid}
+              isLoggedIn={isLoggedIn}
+              setIsLoggedIn={setIsLoggedIn}
+            />
           ) : (
             <LoginPage
               setIsTokenValid={setIsTokenValid}

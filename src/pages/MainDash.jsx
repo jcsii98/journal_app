@@ -1,25 +1,25 @@
 import BodyButton from "../components/BodyButton";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import CategoryForm from "../components/CategoryForm";
 import Tasks from "../components/Tasks";
 
-export default function MainDash() {
+export default function MainDash(props) {
+  const { setIsTokenValid, addCategory, setAddCategory } = props;
   const [categories, setCategories] = useState([]);
-  const [addCategory, setAddCategory] = useState(false);
   const [activeTab, setActiveTab] = useState("");
   const [categoryData, setCategoryData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [toggleEdit, setToggleEdit] = useState(false);
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  console.log(categoryData);
   const fetchCategories = () => {
     console.log("fetch called");
     const storedToken = localStorage.getItem("token");
     const authorizationHeader = `Token ${storedToken}`;
-    fetch("http://127.0.0.1:3000/categories", {
+    fetch("https://journal-api-cxui.onrender.com/categories", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -29,15 +29,15 @@ export default function MainDash() {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        console.log("SetCategories called");
-        setCategories(data);
+        if (data.categories) {
+          console.log(data.categories);
+          setCategories(data.categories);
+          console.log("SetCategories called");
+        }
       })
       .catch((error) => {
         console.error(error);
       });
-  };
-  const toggleAddCategory = () => {
-    setAddCategory((prevState) => !prevState);
   };
 
   const handleActiveTabChange = (categoryId) => {
@@ -46,60 +46,143 @@ export default function MainDash() {
 
   const handleSubmitCategory = (formData) => {
     event.preventDefault();
+    const catId = activeTab;
     const storedToken = localStorage.getItem("token");
     const authorizationHeader = `Token ${storedToken}`;
-    fetch("http://localhost:3000/categories", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authorizationHeader,
-      },
-      body: JSON.stringify({
-        category: {
-          name: formData.category_name,
+
+    if (toggleEdit && formData.category_name === "") {
+      // Delete the category
+      const url = `https://journal-api-cxui.onrender.com/categories/${catId}`;
+      fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authorizationHeader,
         },
-      }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json(); // Parse the response body as JSON
-        } else {
-          throw new Error("Failed to create category");
-        }
       })
-      .then((data) => {
-        console.log(data);
-        // Update state to hide the form
-        setAddCategory(false);
-        fetchCategories();
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to delete category");
+          }
+        })
+        .then((data) => {
+          console.log(data);
+          // Update state to hide the form and reset toggleEdit
+          setAddCategory(false);
+          setToggleEdit(false);
+          fetchCategories();
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    } else {
+      // Create or update the category
+      const url = toggleEdit
+        ? `https://journal-api-cxui.onrender.com/categories/${catId}`
+        : "https://journal-api-cxui.onrender.com/categories";
+      const method = toggleEdit ? "PUT" : "POST";
+
+      fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authorizationHeader,
+        },
+        body: JSON.stringify({
+          category: {
+            name: formData.category_name,
+          },
+        }),
       })
-      .catch((error) => {
-        console.error(error);
-      });
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error(
+              toggleEdit
+                ? "Failed to update category"
+                : "Failed to create category"
+            );
+          }
+        })
+        .then((data) => {
+          console.log(data);
+          // Update state to hide the form and reset toggleEdit
+          setAddCategory(false);
+          setToggleEdit(false);
+          fetchCategories();
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
   };
+
+  const navContainerRef = useRef(null);
+
+  const enableScrollOnHover = () => {
+    navContainerRef.current.style.overflowX = "scroll";
+  };
+
+  const disableScrollOnHover = () => {
+    navContainerRef.current.style.overflowX = "hidden";
+  };
+
+  const handleScroll = (event) => {
+    const navContainer = navContainerRef.current;
+    const scrollLeft = event.deltaY;
+    navContainer.scrollLeft -= scrollLeft;
+  };
+
+  useEffect(() => {
+    const navContainer = navContainerRef.current;
+    navContainer.addEventListener("wheel", handleScroll);
+    navContainer.addEventListener("mouseenter", enableScrollOnHover);
+    navContainer.addEventListener("mouseleave", disableScrollOnHover);
+
+    return () => {
+      navContainer.removeEventListener("wheel", handleScroll);
+      navContainer.removeEventListener("mouseenter", enableScrollOnHover);
+      navContainer.removeEventListener("mouseleave", disableScrollOnHover);
+    };
+  }, []);
 
   return (
     <>
       <div className="main-dash">
-        {categories.length > 0 ? (
-          <div className="btn-group btn-group-toggle" data-toggle="buttons">
-            {categories.map((category) => (
-              <BodyButton
-                setIsLoading={setIsLoading}
-                key={category.id}
-                category={category}
-                activeTab={activeTab} // Pass the activeTab state as a prop
-                handleActiveTabChange={handleActiveTabChange} // Pass the function to change active tab as a prop
-                setCategoryData={setCategoryData}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="my-1">
-            <h2 className="font-color-secondary">Pretty quiet today...</h2>
-          </div>
-        )}
-        {addCategory ? (
+        <div
+          ref={navContainerRef}
+          className="slider-nav-container"
+          style={{ scrollBehavior: "smooth" }}
+        >
+          {categories.length > 0 ? (
+            <div
+              className="slider-nav btn-group btn-group-toggle"
+              data-toggle="buttons"
+            >
+              {categories.map((category) => (
+                <BodyButton
+                  setIsTokenValid={setIsTokenValid}
+                  key={category.id}
+                  toggleEdit={toggleEdit}
+                  setToggleEdit={setToggleEdit}
+                  setIsLoading={setIsLoading}
+                  category={category}
+                  activeTab={activeTab} // Pass the activeTab state as a prop
+                  handleActiveTabChange={handleActiveTabChange} // Pass the function to change active tab as a prop
+                  setCategoryData={setCategoryData}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="my-1">
+              <h2 className="font-color-secondary">Pretty quiet today...</h2>
+            </div>
+          )}
+        </div>
+        {addCategory || toggleEdit ? (
           <CategoryForm
             handleSubmitCategory={handleSubmitCategory}
             setAddCategory={setAddCategory}
@@ -112,11 +195,32 @@ export default function MainDash() {
               <p>Loading...</p>
             ) : (
               categoryData && (
-                <div>
+                <div className="accordion mt-3">
                   {categoryData.map((category) => (
-                    <div key={category.id}>
-                      <p>Name: {category.name}</p>
-                      <p>Body: {category.body}</p>
+                    <div
+                      className="accordion-item"
+                      id={`accordionExample-${category.id}`}
+                      key={category.id}
+                    >
+                      <h2 className="accordion-header">
+                        <button
+                          className="accordion-button"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target={`#collapse-${category.id}`}
+                          aria-expanded="true"
+                          aria-controls={`collapse-${category.id}`}
+                        >
+                          {category.name}
+                        </button>
+                      </h2>
+                      <div
+                        id={`collapse-${category.id}`}
+                        className="accordion-collapse collapse"
+                        data-bs-parent={`#accordionExample-${category.id}`}
+                      >
+                        <div className="accordion-body">{category.body}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -125,15 +229,9 @@ export default function MainDash() {
           </>
         )}
         <div className="footer">
-          {!addCategory && (
-            <button
-              onClick={toggleAddCategory}
-              type="button"
-              className="btn-primary btn"
-            >
-              <h3>Add category</h3>
-            </button>
-          )}
+          <button type="button" className="btn-primary btn">
+            Submit
+          </button>
         </div>
       </div>
     </>
