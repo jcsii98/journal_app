@@ -142,7 +142,7 @@ export default function LoginPage(props) {
 
           <div className="button-container">
             {" "}
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn btn-secondary">
               Submit
             </button>
             <p className="text-muted">

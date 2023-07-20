@@ -155,6 +155,7 @@ body {
 .slider-nav {
   display: flex;
   flex-wrap: nowrap;
+  height: 40px;
 }
 
 /* forms */
@@ -208,6 +209,9 @@ body {
   --bs-btn-disabled-color: #fff;
   --bs-btn-disabled-bg: #6c757d;
   --bs-btn-disabled-border-color: #6c757d;
+}
+.body-btn {
+  border-radius: 6px !important;
 }
 .header-btn {
   height: 50%;

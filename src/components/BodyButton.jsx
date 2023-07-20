@@ -52,10 +52,16 @@ export default function BodyButton(props) {
   return (
     <>
       <label
-        className={`btn-show-edit ff-primary fw-400 btn btn-secondary ${
+        className={`body-btn mx-2 btn-show-edit ff-primary fw-400 btn btn-secondary ${
           activeTab === category.id ? "active" : ""
         }`}
         onClick={handleLabelClick}
+        style={{
+          height: "40px",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
       >
         <input
           type="radio"
@@ -65,14 +71,14 @@ export default function BodyButton(props) {
           style={{ display: "none" }}
         />
         {/* {isActive && (
-          <img
-            className="mx-1 hover-scale"
-            style={{ height: "15px", filter: "invert(100%)" }}
-            src="edit.png"
-            alt="Edit"
-            onClick={setToggleEdit}
-          />
-        )} */}
+    <img
+      className="mx-1 hover-scale"
+      style={{ height: "15px", filter: "invert(100%)" }}
+      src="edit.png"
+      alt="Edit"
+      onClick={setToggleEdit}
+    />
+  )} */}
         {buttonName}
       </label>
     </>
