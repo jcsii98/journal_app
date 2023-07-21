@@ -11,12 +11,15 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!rememberMe);
   const [userDetails, setUserDetails] = useState({});
   const [addCategory, setAddCategory] = useState(false);
+  const [addTask, setAddTask] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState(false);
 
   const checkTokenValidity = () => {
     const storedToken = localStorage.getItem("token");
     const storedUserId = localStorage.getItem("userId");
     if (storedToken && storedUserId) {
-      const url = `https://journal-api-cxui.onrender.com/user/${storedUserId}`;
+      const url = `http://127.0.0.1:3000/user/${storedUserId}`;
       fetch(url, {
         method: "GET",
         headers: {
@@ -63,7 +66,12 @@ function App() {
         <>
           <div className="outer-wrapper">
             <Header
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              isEditing={isEditing}
+              setIsEditing={setIsEditing}
               addCategory={addCategory}
+              setAddTask={setAddTask}
               setAddCategory={setAddCategory}
               isTokenValid={isTokenValid}
               setIsTokenValid={setIsTokenValid}
@@ -73,6 +81,12 @@ function App() {
             <div className="app-wrapper border-radius-1 py-4 px-4 display-flex flex-column">
               {isTokenValid && isLoggedIn ? (
                 <MainDash
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
+                  setAddTask={setAddTask}
+                  addTask={addTask}
                   addCategory={addCategory}
                   setAddCategory={setAddCategory}
                   setIsTokenValid={setIsTokenValid}

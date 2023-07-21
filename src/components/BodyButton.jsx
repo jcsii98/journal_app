@@ -2,14 +2,15 @@ import React, { useState, useEffect } from "react";
 // import edit from "../assets/Edit.png";
 export default function BodyButton(props) {
   const {
+    setAddCategory,
+    setAddTask,
     setIsTokenValid,
     setIsLoading,
     category,
     activeTab,
     handleActiveTabChange,
     setCategoryData,
-    toggleEdit,
-    setToggleEdit,
+    setIsEditing,
   } = props;
 
   const [isActive, setIsActive] = useState(false);
@@ -22,7 +23,7 @@ export default function BodyButton(props) {
   const fetchCategoryData = (categoryId) => {
     const storedToken = localStorage.getItem("token");
     const authorizationHeader = `Token ${storedToken}`;
-    const url = `https://journal-api-cxui.onrender.com/categories/${categoryId}/tasks/`;
+    const url = `http://127.0.0.1:3000/categories/${categoryId}/tasks/`;
 
     fetch(url, {
       method: "GET",
@@ -49,10 +50,16 @@ export default function BodyButton(props) {
   useEffect(() => {
     setIsActive(activeTab === category.id);
   }, [activeTab, category.id]);
+
+  const toggleIsEditing = () => {
+    setAddCategory(false);
+    setAddTask(false);
+    setIsEditing((prevState) => !prevState);
+  };
   return (
     <>
       <label
-        className={`body-btn mx-2 btn-show-edit ff-primary fw-400 btn btn-secondary ${
+        className={`body-btn btn-show-edit ff-primary fw-400 btn btn-secondary ${
           activeTab === category.id ? "active" : ""
         }`}
         onClick={handleLabelClick}
@@ -70,16 +77,14 @@ export default function BodyButton(props) {
           autoComplete="off"
           style={{ display: "none" }}
         />
-        {/* {isActive && (
-    <img
-      className="mx-1 hover-scale"
-      style={{ height: "15px", filter: "invert(100%)" }}
-      src="edit.png"
-      alt="Edit"
-      onClick={setToggleEdit}
-    />
-  )} */}
         {buttonName}
+        {isActive && (
+          <button
+            className="mx-1 inner-btn"
+            alt="Edit"
+            onClick={toggleIsEditing}
+          />
+        )}
       </label>
     </>
   );

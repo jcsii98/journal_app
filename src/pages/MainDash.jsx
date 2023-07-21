@@ -1,15 +1,27 @@
 import BodyButton from "../components/BodyButton";
 import React, { useState, useEffect, useRef } from "react";
 import CategoryForm from "../components/CategoryForm";
-import Tasks from "../components/Tasks";
+import TaskForm from "../components/TaskForm";
 
 export default function MainDash(props) {
-  const { setIsTokenValid, addCategory, setAddCategory } = props;
+  const {
+    setIsEditing,
+    addTask,
+    setAddTask,
+    setIsTokenValid,
+    addCategory,
+    setAddCategory,
+    isEditing,
+    activeTab,
+    setActiveTab,
+  } = props;
   const [categories, setCategories] = useState([]);
-  const [activeTab, setActiveTab] = useState("");
-  const [categoryData, setCategoryData] = useState(null);
+  const [categoryData, setCategoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [toggleEdit, setToggleEdit] = useState(false);
+
+  const catId = activeTab;
+  const storedToken = localStorage.getItem("token");
+  const authorizationHeader = `Token ${storedToken}`;
 
   useEffect(() => {
     fetchCategories();
@@ -19,7 +31,7 @@ export default function MainDash(props) {
     console.log("fetch called");
     const storedToken = localStorage.getItem("token");
     const authorizationHeader = `Token ${storedToken}`;
-    fetch("https://journal-api-cxui.onrender.com/categories", {
+    fetch("http://127.0.0.1:3000/categories", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -42,18 +54,21 @@ export default function MainDash(props) {
   };
 
   const handleActiveTabChange = (categoryId) => {
+    setAddCategory(false);
+    setAddTask(false);
+    setIsEditing(false);
     setActiveTab(categoryId);
   };
+  useEffect(() => {
+    console.log("categoryData changed:", categoryData);
+  }, [categoryData]);
 
   const handleSubmitCategory = (formData) => {
     event.preventDefault();
-    const catId = activeTab;
-    const storedToken = localStorage.getItem("token");
-    const authorizationHeader = `Token ${storedToken}`;
 
-    if (toggleEdit && formData.category_name === "") {
+    if (isEditing && formData.category_name === "") {
       // Delete the category
-      const url = `https://journal-api-cxui.onrender.com/categories/${catId}`;
+      const url = `http://127.0.0.1:3000/categories/${catId}`;
       fetch(url, {
         method: "DELETE",
         headers: {
@@ -72,7 +87,7 @@ export default function MainDash(props) {
           console.log(data);
           // Update state to hide the form and reset toggleEdit
           setAddCategory(false);
-          setToggleEdit(false);
+          setIsEditing(false);
           fetchCategories();
         })
         .catch((error) => {
@@ -80,10 +95,10 @@ export default function MainDash(props) {
         });
     } else {
       // Create or update the category
-      const url = toggleEdit
-        ? `https://journal-api-cxui.onrender.com/categories/${catId}`
-        : "https://journal-api-cxui.onrender.com/categories";
-      const method = toggleEdit ? "PUT" : "POST";
+      const url = isEditing
+        ? `http://127.0.0.1:3000/categories/${catId}`
+        : "http://127.0.0.1:3000/categories";
+      const method = isEditing ? "PUT" : "POST";
 
       fetch(url, {
         method: method,
@@ -102,7 +117,7 @@ export default function MainDash(props) {
             return response.json();
           } else {
             throw new Error(
-              toggleEdit
+              isEditing
                 ? "Failed to update category"
                 : "Failed to create category"
             );
@@ -112,7 +127,7 @@ export default function MainDash(props) {
           console.log(data);
           // Update state to hide the form and reset toggleEdit
           setAddCategory(false);
-          setToggleEdit(false);
+          setIsEditing(false);
           fetchCategories();
         })
         .catch((error) => {
@@ -121,6 +136,40 @@ export default function MainDash(props) {
     }
   };
 
+  const handleSubmitTask = (formData) => {
+    console.log("Form Data:", formData);
+    // create task
+    const url = `http://127.0.0.1:3000/categories/${catId}/tasks`;
+    const method = "POST";
+
+    fetch(url, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationHeader,
+      },
+      body: JSON.stringify({
+        task: {
+          name: formData.task_name,
+          body: formData.task_body,
+        },
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Failed to create task");
+        }
+      })
+      .then((data) => {
+        console.log(data);
+        setAddTask(false);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
   const navContainerRef = useRef(null);
 
   const enableScrollOnHover = () => {
@@ -152,6 +201,13 @@ export default function MainDash(props) {
       };
     }
   }, [navContainerRef.current]);
+
+  const toggleAddTask = () => {
+    setAddCategory(false);
+    setAddTask((prevState) => !prevState);
+
+    console.log("toggle clicked");
+  };
   return (
     <>
       <div className="main-dash">
@@ -172,28 +228,83 @@ export default function MainDash(props) {
                 <BodyButton
                   setIsTokenValid={setIsTokenValid}
                   key={category.id}
-                  toggleEdit={toggleEdit}
-                  setToggleEdit={setToggleEdit}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
                   setIsLoading={setIsLoading}
                   category={category}
                   activeTab={activeTab}
                   handleActiveTabChange={handleActiveTabChange}
                   setCategoryData={setCategoryData}
+                  setAddCategory={setAddCategory}
+                  setAddTask={setAddTask}
                 />
               ))}
             </div>
           ) : (
             <div className="my-1">
-              <h2 className="font-color-secondary">Pretty quiet today...</h2>
+              <h2 className="font-color-secondary">
+                Add a category to get started
+              </h2>
             </div>
           )}
         </div>
-        {addCategory && (
-          <CategoryForm handleSubmitCategory={handleSubmitCategory} />
-        )}
+
+        <div className="text-muted main-dash-body border-bottom border-top">
+          {addCategory || isEditing ? (
+            <CategoryForm
+              isEditing={isEditing}
+              handleSubmitCategory={handleSubmitCategory}
+            />
+          ) : addTask ? (
+            <>
+              <TaskForm handleSubmitTask={handleSubmitTask} />
+            </>
+          ) : categoryData.length > 0 || activeTab ? (
+            <>
+              <div className="accordion-container my-1">
+                {categoryData.map((category) => (
+                  <div className="accordion my-1" key={category.id}>
+                    <div
+                      className="accordion-item"
+                      id={`accordionExample-${category.id}`}
+                    >
+                      <h2 className="accordion-header">
+                        <button
+                          className="accordion-button collapsed"
+                          type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target={`#collapse-${category.id}`}
+                          aria-expanded="false"
+                          aria-controls={`collapse-${category.id}`}
+                        >
+                          {category.name}
+                        </button>
+                      </h2>
+                      <div
+                        id={`collapse-${category.id}`}
+                        className="accordion-collapse collapse"
+                        aria-labelledby={`accordionExample-${category.id}`}
+                        data-bs-parent={`#accordionExample-${category.id}`}
+                      >
+                        <div className="accordion-body">{category.body}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <h2>Add a task</h2>
+          )}
+        </div>
         <div className="footer">
-          <button type="button" className="btn-primary btn">
-            Add Task
+          <button
+            type="button"
+            className="btn-primary btn"
+            onClick={toggleAddTask}
+          >
+            {" "}
+            {addTask ? <>Cancel</> : <>Add Task</>}
           </button>
         </div>
       </div>

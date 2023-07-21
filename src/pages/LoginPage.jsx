@@ -18,10 +18,11 @@ export default function LoginPage(props) {
   const handleSignupToggle = (event) => {
     event.preventDefault();
     setShowSignup((prevState) => !prevState);
+    resetForm();
   };
 
   const handleSignup = (formData) => {
-    const url = "https://journal-api-cxui.onrender.com/auth/signup";
+    const url = "http://127.0.0.1:3000/auth/signup";
     fetch(url, {
       method: "POST",
       headers: {
@@ -42,7 +43,7 @@ export default function LoginPage(props) {
             return response.json().then((data) => {
               // Check if the response contains the email error
               if (data.email && data.email.length > 0) {
-                throw new Error(data.email[0]); // Throw an error with the server's error message
+                throw new Error(`Email: ${data.email[0]}`); // Throw an error with the server's error message
               } else {
                 throw new Error("An error occurred. Please try again.");
               }
@@ -59,7 +60,7 @@ export default function LoginPage(props) {
         if (data.user) {
           // Handle successful signup
           localStorage.setItem("token", data.token);
-          // Update your state or perform any other actions here if needed
+          // Update state or perform any other actions here if needed
         }
       })
       .catch((error) => {
@@ -71,7 +72,7 @@ export default function LoginPage(props) {
   };
 
   const handleSignin = (formData) => {
-    const url = "https://journal-api-cxui.onrender.com/auth/signin";
+    const url = "http://127.0.0.1:3000/auth/signin";
     fetch(url, {
       method: "POST",
       headers: {
@@ -130,10 +131,17 @@ export default function LoginPage(props) {
       handleSignup(formData);
     }
   };
-
+  const resetForm = () => {
+    setFormData({
+      email: "",
+      password: "",
+      name: "",
+      password_confirmation: "",
+    });
+  };
   return (
     <>
-      <div className="bb-1 mb-1">
+      <div className="form-container mb-1">
         <div className="mb-3">
           <h2 className="font-color-primary">
             {showSignup ? <>Signup</> : <>Log in</>}
