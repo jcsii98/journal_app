@@ -45,14 +45,6 @@ export default function Header(props) {
         <>
           <div className="header-btns">
             <button
-              onClick={toggleAddCategory}
-              type="button"
-              className="mx-3 btn-secondary btn"
-            >
-              {" "}
-              {addCategory ? <>Cancel</> : <>Add category</>}
-            </button>
-            <button
               type="button"
               className="btn btn-secondary"
               onClick={handleSignout}

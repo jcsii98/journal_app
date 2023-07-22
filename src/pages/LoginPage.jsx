@@ -19,6 +19,7 @@ export default function LoginPage(props) {
     event.preventDefault();
     setShowSignup((prevState) => !prevState);
     resetForm();
+    setError();
   };
 
   const handleSignup = (formData) => {
@@ -61,6 +62,21 @@ export default function LoginPage(props) {
           // Handle successful signup
           localStorage.setItem("token", data.token);
           // Update state or perform any other actions here if needed
+          const userProperties = ["id", "email", "name"];
+          userProperties.forEach((property) => {
+            localStorage.setItem(
+              `user${property.charAt(0).toUpperCase() + property.slice(1)}`,
+              data.user[property]
+            );
+            console.log(
+              `${property.charAt(0).toUpperCase() + property.slice(1)}: ` +
+                localStorage.getItem(
+                  `user${property.charAt(0).toUpperCase() + property.slice(1)}`
+                )
+            );
+          });
+          setIsTokenValid(true);
+          setIsLoggedIn(true);
         }
       })
       .catch((error) => {
@@ -115,11 +131,13 @@ export default function LoginPage(props) {
           });
           setIsTokenValid(true);
           setIsLoggedIn(true);
+        } else {
+          setError("User not found");
         }
       })
       .catch((error) => {
         console.error(error);
-        setError("An error occured. Please try again.");
+        setError(error);
       });
   };
   const handleSubmit = (event) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-// import edit from "../assets/Edit.png";
+import Edit from "../assets/edit.png";
 export default function BodyButton(props) {
   const {
     setAddCategory,
@@ -8,43 +8,32 @@ export default function BodyButton(props) {
     setIsLoading,
     category,
     activeTab,
+    setActiveTab,
     handleActiveTabChange,
     setCategoryData,
     setIsEditing,
+    fetchCategoryData,
   } = props;
-
   const [isActive, setIsActive] = useState(false);
-  let buttonName = category.name;
+
   const handleLabelClick = () => {
-    handleActiveTabChange(category.id);
-    fetchCategoryData(category.id);
-  };
+    console.log("Active tab:", activeTab);
+    console.log("category.id:", category.id);
 
-  const fetchCategoryData = (categoryId) => {
-    const storedToken = localStorage.getItem("token");
-    const authorizationHeader = `Token ${storedToken}`;
-    const url = `http://127.0.0.1:3000/categories/${categoryId}/tasks/`;
+    const buttonClicked = category.id;
+    const previousBtn = activeTab;
 
-    fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authorizationHeader,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data.user) {
-          setCategoryData(data);
-          setIsLoading(false);
-        } else {
-          setIsTokenValid(false);
-          console.log("Token is invalid");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    if (event.target.tagName === "LABEL") {
+      setAddCategory(false);
+      setAddTask(false);
+      setIsEditing(false);
+      if (buttonClicked === previousBtn) {
+        setActiveTab(null);
+      } else {
+        handleActiveTabChange(category.id);
+        fetchCategoryData(category.id);
+      }
+    }
   };
 
   useEffect(() => {
@@ -55,6 +44,7 @@ export default function BodyButton(props) {
     setAddCategory(false);
     setAddTask(false);
     setIsEditing((prevState) => !prevState);
+    console.log("editing called");
   };
   return (
     <>
@@ -77,13 +67,13 @@ export default function BodyButton(props) {
           autoComplete="off"
           style={{ display: "none" }}
         />
-        {buttonName}
+        {category.name}
         {isActive && (
-          <button
-            className="mx-1 inner-btn"
-            alt="Edit"
+          <img
             onClick={toggleIsEditing}
-          />
+            style={{ height: "15px" }}
+            src={Edit}
+          ></img>
         )}
       </label>
     </>

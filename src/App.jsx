@@ -13,7 +13,7 @@ function App() {
   const [addCategory, setAddCategory] = useState(false);
   const [addTask, setAddTask] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState(false);
+  const [activeTab, setActiveTab] = useState(null);
 
   const checkTokenValidity = () => {
     const storedToken = localStorage.getItem("token");

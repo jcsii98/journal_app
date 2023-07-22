@@ -18,6 +18,7 @@ export default function MainDash(props) {
   const [categories, setCategories] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const catId = activeTab;
   const storedToken = localStorage.getItem("token");
@@ -26,7 +27,13 @@ export default function MainDash(props) {
   useEffect(() => {
     fetchCategories();
   }, []);
+  const toggleAddCategory = () => {
+    setAddTask(false);
+    setIsEditing(false);
+    setAddCategory((prevState) => !prevState);
 
+    console.log("toggle clicked");
+  };
   const fetchCategories = () => {
     console.log("fetch called");
     const storedToken = localStorage.getItem("token");
@@ -44,7 +51,6 @@ export default function MainDash(props) {
         if (data.categories) {
           console.log(data.categories);
           setCategories(data.categories);
-          console.log("SetCategories called");
           setIsLoading(false);
         }
       })
@@ -65,77 +71,121 @@ export default function MainDash(props) {
 
   const handleSubmitCategory = (formData) => {
     event.preventDefault();
+    // Create or update the category
+    const url = "http://127.0.0.1:3000/categories";
+    const method = "POST";
 
-    if (isEditing && formData.category_name === "") {
-      // Delete the category
-      const url = `http://127.0.0.1:3000/categories/${catId}`;
-      fetch(url, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: authorizationHeader,
+    fetch(url, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationHeader,
+      },
+      body: JSON.stringify({
+        category: {
+          name: formData.category_name,
         },
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return response.json().then((data) => {
+            throw new Error(data.errors.join(", "));
+          });
+        }
       })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error("Failed to delete category");
-          }
-        })
-        .then((data) => {
-          console.log(data);
-          // Update state to hide the form and reset toggleEdit
+      .then((data) => {
+        console.log(data);
+        if (!data.errors && data.id) {
           setAddCategory(false);
           setIsEditing(false);
           fetchCategories();
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    } else {
-      // Create or update the category
-      const url = isEditing
-        ? `http://127.0.0.1:3000/categories/${catId}`
-        : "http://127.0.0.1:3000/categories";
-      const method = isEditing ? "PUT" : "POST";
-
-      fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: authorizationHeader,
-        },
-        body: JSON.stringify({
-          category: {
-            name: formData.category_name,
-          },
-        }),
+        } else {
+          setError(data.errors);
+        }
       })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error(
-              isEditing
-                ? "Failed to update category"
-                : "Failed to create category"
-            );
-          }
-        })
-        .then((data) => {
-          console.log(data);
-          // Update state to hide the form and reset toggleEdit
-          setAddCategory(false);
-          setIsEditing(false);
-          fetchCategories();
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    }
+      .catch((error) => {
+        console.error(error);
+        // Handle and display the error in your UI
+        setError(error.message);
+      });
   };
 
+  const handleUpdateCategory = (formData) => {
+    event.preventDefault();
+
+    // delete category
+    const method = formData.category_name === "" ? "DELETE" : "PUT";
+
+    const url = `http://127.0.0.1:3000/categories/${catId}?`;
+    fetch(url, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationHeader,
+      },
+      body: JSON.stringify({
+        category: {
+          name: formData.category_name,
+        },
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return response.json().then((data) => {
+            throw new Error(data.errors.join(", "));
+          });
+        }
+      })
+      .then((data) => {
+        console.log(data);
+        if (!data.errors && data.id) {
+          setAddCategory(false);
+          setIsEditing(false);
+          fetchCategories();
+        } else {
+          setError(data.errors);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        // Handle and display the error in your UI
+        setError(error.message);
+      });
+  };
+  const fetchCategoryData = (categoryId) => {
+    console.log("categoryId:", categoryId);
+    const storedToken = localStorage.getItem("token");
+    const authorizationHeader = `Token ${storedToken}`;
+    const url = `http://127.0.0.1:3000/categories/${categoryId}/tasks/`;
+
+    fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationHeader,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        if (data.length > 0) {
+          console.log("category data exists");
+          setCategoryData(data);
+          setIsLoading(false);
+        } else {
+          // setIsTokenValid(false);
+          console.log("Token is invalid");
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
   const handleSubmitTask = (formData) => {
     console.log("Form Data:", formData);
     // create task
@@ -164,6 +214,7 @@ export default function MainDash(props) {
       })
       .then((data) => {
         console.log(data);
+        fetchCategoryData(data.category_id);
         setAddTask(false);
       })
       .catch((error) => {
@@ -182,8 +233,14 @@ export default function MainDash(props) {
 
   const handleScroll = (event) => {
     const navContainer = navContainerRef.current;
-    const scrollLeft = event.deltaY;
-    navContainer.scrollLeft -= scrollLeft;
+    event.preventDefault();
+    const scrollDirection = event.deltaY > 0 ? "down" : "up";
+    const scrollAmount = 100;
+    if (scrollDirection === "down") {
+      navContainer.scrollLeft += scrollAmount;
+    } else {
+      navContainer.scrollLeft -= scrollAmount;
+    }
   };
 
   useEffect(() => {
@@ -226,13 +283,15 @@ export default function MainDash(props) {
             >
               {categories.map((category) => (
                 <BodyButton
+                  fetchCategoryData={fetchCategoryData}
+                  setActiveTab={setActiveTab}
+                  activeTab={activeTab}
                   setIsTokenValid={setIsTokenValid}
                   key={category.id}
                   isEditing={isEditing}
                   setIsEditing={setIsEditing}
                   setIsLoading={setIsLoading}
                   category={category}
-                  activeTab={activeTab}
                   handleActiveTabChange={handleActiveTabChange}
                   setCategoryData={setCategoryData}
                   setAddCategory={setAddCategory}
@@ -241,25 +300,28 @@ export default function MainDash(props) {
               ))}
             </div>
           ) : (
-            <div className="my-1">
-              <h2 className="font-color-secondary">
-                Add a category to get started
-              </h2>
-            </div>
+            !addCategory && (
+              <div className="my-1">
+                <h2 className="text-muted">Your categories</h2>
+              </div>
+            )
           )}
         </div>
 
         <div className="text-muted main-dash-body border-bottom border-top">
           {addCategory || isEditing ? (
             <CategoryForm
+              error={error}
+              setError={setError}
               isEditing={isEditing}
               handleSubmitCategory={handleSubmitCategory}
+              handleUpdateCategory={handleUpdateCategory}
             />
           ) : addTask ? (
             <>
               <TaskForm handleSubmitTask={handleSubmitTask} />
             </>
-          ) : categoryData.length > 0 || activeTab ? (
+          ) : categoryData.length > 0 && activeTab ? (
             <>
               <div className="accordion-container my-1">
                 {categoryData.map((category) => (
@@ -293,19 +355,39 @@ export default function MainDash(props) {
                 ))}
               </div>
             </>
+          ) : activeTab ? (
+            <h4>Add a task</h4>
+          ) : categories.length > 0 ? (
+            <>
+              <h4>Select Category</h4>
+            </>
           ) : (
-            <h2>Add a task</h2>
+            <>
+              <h4>Add category to start</h4>
+            </>
           )}
         </div>
         <div className="footer">
           <button
+            onClick={toggleAddCategory}
             type="button"
-            className="btn-primary btn"
-            onClick={toggleAddTask}
+            className="mr-1 btn-primary btn"
           >
             {" "}
-            {addTask ? <>Cancel</> : <>Add Task</>}
+            {addCategory ? <>Cancel</> : <>Add category</>}
           </button>
+          {activeTab && (
+            <>
+              <button
+                type="button"
+                className="btn-primary btn"
+                onClick={toggleAddTask}
+              >
+                {" "}
+                {addTask ? <>Cancel</> : <>Add Task</>}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </>

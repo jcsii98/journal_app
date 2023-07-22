@@ -257,6 +257,9 @@ body {
   margin-left: 30px;
   margin-right: 30px;
 }
+.mr-1 {
+  margin-right: 10px;
+}
 .border-radius-1 {
   border-radius: 5px;
 }

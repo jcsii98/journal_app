@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 export default function TaskForm(props) {
-  const { handleSubmitTask } = props;
+  const { handleSubmitTask, error, setError } = props;
   const [formData, setFormData] = useState({
     task_name: "",
     task_body: "",
@@ -35,7 +35,7 @@ export default function TaskForm(props) {
                 onChange={handleChange}
                 name="task_name"
                 value={formData.task_name}
-                placeholder="Task name"
+                placeholder="Feed the dog"
               ></input>
             </div>
             <div className="form-group mb-1">
@@ -48,10 +48,11 @@ export default function TaskForm(props) {
                 onChange={handleChange}
                 name="task_body"
                 value={formData.task_body}
-                placeholder="Task details here"
+                placeholder="Leave out food for Nala"
               ></input>
             </div>
           </div>
+          {error && <div className="text-danger mb-3">{error}</div>}
           <button className="btn-primary btn" type="submit">
             Submit Task
           </button>
