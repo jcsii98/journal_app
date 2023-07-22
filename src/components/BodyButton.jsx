@@ -67,7 +67,7 @@ export default function BodyButton(props) {
           autoComplete="off"
           style={{ display: "none" }}
         />
-        <div className="mr-1">{category.name}</div>
+        <div>{category.name}</div>
 
         {isActive && (
           <img
@@ -75,6 +75,7 @@ export default function BodyButton(props) {
             style={{ height: "15px", filter: "invert(1)" }}
             src={Edit}
             alt="Edit"
+            className="ml-1"
           />
         )}
       </label>
