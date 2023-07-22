@@ -310,7 +310,7 @@ export default function MainDash(props) {
   };
 
   const handleEditTaskSubmit = (formData) => {
-    const url = `https://journal-app-t8n9.onrender.com/categories/${catId}/tasks/${editTaskId}`;
+    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks/${editTaskId}`;
     const method = "PUT";
 
     fetch(url, {
