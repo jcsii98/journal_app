@@ -2,12 +2,14 @@ import React, { useState } from "react";
 
 export default function CategoryForm(props) {
   const {
+    setIsEditing,
     isEditing,
     handleUpdateCategory,
     setAddCategory,
     handleSubmitCategory,
     error,
     setError,
+    handleDeleteCategory,
   } = props;
   const [formData, setFormData] = useState({
     category_name: "",
@@ -25,7 +27,9 @@ export default function CategoryForm(props) {
       handleUpdateCategory(formData);
     }
   };
-
+  const cancelEdit = () => {
+    setIsEditing(false);
+  };
   return (
     <>
       <div className="form-container">
@@ -51,8 +55,26 @@ export default function CategoryForm(props) {
             </div>
           </div>
           {error && <div className="text-danger mb-3">{error}</div>}
-          <button className="btn-primary btn" type="submit">
-            Submit Category
+          {isEditing && (
+            <>
+              <button
+                onClick={cancelEdit}
+                className="mr-1 btn-primary btn"
+                type="button"
+              >
+                Cancel Edit
+              </button>
+              <button
+                onClick={handleDeleteCategory}
+                className="mr-1 btn-primary btn"
+                type="button"
+              >
+                Delete
+              </button>
+            </>
+          )}
+          <button className="mr-1 btn-primary btn" type="submit">
+            Submit
           </button>
         </form>
       </div>

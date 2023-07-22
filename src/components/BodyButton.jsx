@@ -23,7 +23,7 @@ export default function BodyButton(props) {
     const buttonClicked = category.id;
     const previousBtn = activeTab;
 
-    if (event.target.tagName === "LABEL") {
+    if (event.target.tagName === "LABEL" || event.target.tagName === "DIV") {
       setAddCategory(false);
       setAddTask(false);
       setIsEditing(false);
@@ -67,13 +67,15 @@ export default function BodyButton(props) {
           autoComplete="off"
           style={{ display: "none" }}
         />
-        {category.name}
+        <div className="mr-1">{category.name}</div>
+
         {isActive && (
           <img
             onClick={toggleIsEditing}
-            style={{ height: "15px" }}
+            style={{ height: "15px", filter: "invert(1)" }}
             src={Edit}
-          ></img>
+            alt="Edit"
+          />
         )}
       </label>
     </>

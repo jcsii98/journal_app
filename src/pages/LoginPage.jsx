@@ -23,7 +23,7 @@ export default function LoginPage(props) {
   };
 
   const handleSignup = (formData) => {
-    const url = "http://127.0.0.1:3000/auth/signup";
+    const url = "https://journal-api-cxui.onrender.com/auth/signup";
     fetch(url, {
       method: "POST",
       headers: {
@@ -88,7 +88,7 @@ export default function LoginPage(props) {
   };
 
   const handleSignin = (formData) => {
-    const url = "http://127.0.0.1:3000/auth/signin";
+    const url = "https://journal-api-cxui.onrender.com/auth/signin";
     fetch(url, {
       method: "POST",
       headers: {

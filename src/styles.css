@@ -326,7 +326,11 @@ body {
   --bs-accordion-active-color: white;
   --bs-accordion-active-bg: #242325;
 }
-
+.accordion-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .accordion-button:focus {
   box-shadow: none;
 }

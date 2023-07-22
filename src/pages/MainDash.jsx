@@ -2,7 +2,7 @@ import BodyButton from "../components/BodyButton";
 import React, { useState, useEffect, useRef } from "react";
 import CategoryForm from "../components/CategoryForm";
 import TaskForm from "../components/TaskForm";
-
+import Edit from "../assets/edit.png";
 export default function MainDash(props) {
   const {
     setIsEditing,
@@ -19,7 +19,8 @@ export default function MainDash(props) {
   const [categoryData, setCategoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [isEditingTask, setIsEditingTask] = useState(false);
+  const [editTaskId, setEditTaskId] = useState("");
   const catId = activeTab;
   const storedToken = localStorage.getItem("token");
   const authorizationHeader = `Token ${storedToken}`;
@@ -38,7 +39,7 @@ export default function MainDash(props) {
     console.log("fetch called");
     const storedToken = localStorage.getItem("token");
     const authorizationHeader = `Token ${storedToken}`;
-    fetch("http://127.0.0.1:3000/categories", {
+    fetch("https://journal-api-cxui.onrender.com/categories", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -72,7 +73,7 @@ export default function MainDash(props) {
   const handleSubmitCategory = (formData) => {
     event.preventDefault();
     // Create or update the category
-    const url = "http://127.0.0.1:3000/categories";
+    const url = "https://journal-api-cxui.onrender.com/categories";
     const method = "POST";
 
     fetch(url, {
@@ -113,13 +114,48 @@ export default function MainDash(props) {
       });
   };
 
+  const handleDeleteCategory = () => {
+    const method = "DELETE";
+
+    const url = `https://journal-api-cxui.onrender.com/categories/${catId}?`;
+    fetch(url, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationHeader,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return response.json().then((data) => {
+            throw new Error(data.errors.join(", "));
+          });
+        }
+      })
+      .then((data) => {
+        console.log(data);
+        if (data.message == "Category successfully deleted") {
+          console.log("Category Deleted");
+          setAddCategory(false);
+          setIsEditing(false);
+          fetchCategories();
+          setActiveTab(null);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   const handleUpdateCategory = (formData) => {
     event.preventDefault();
 
     // delete category
-    const method = formData.category_name === "" ? "DELETE" : "PUT";
+    const method = "PUT";
 
-    const url = `http://127.0.0.1:3000/categories/${catId}?`;
+    const url = `https://journal-api-cxui.onrender.com/categories/${catId}?`;
     fetch(url, {
       method: method,
       headers: {
@@ -143,7 +179,7 @@ export default function MainDash(props) {
       })
       .then((data) => {
         console.log(data);
-        if (!data.errors && data.id) {
+        if (!data.errors) {
           setAddCategory(false);
           setIsEditing(false);
           fetchCategories();
@@ -161,7 +197,7 @@ export default function MainDash(props) {
     console.log("categoryId:", categoryId);
     const storedToken = localStorage.getItem("token");
     const authorizationHeader = `Token ${storedToken}`;
-    const url = `http://127.0.0.1:3000/categories/${categoryId}/tasks/`;
+    const url = `https://journal-api-cxui.onrender.com/categories/${categoryId}/tasks/`;
 
     fetch(url, {
       method: "GET",
@@ -173,7 +209,7 @@ export default function MainDash(props) {
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
-        if (data.length > 0) {
+        if (data.length >= 0) {
           console.log("category data exists");
           setCategoryData(data);
           setIsLoading(false);
@@ -189,7 +225,7 @@ export default function MainDash(props) {
   const handleSubmitTask = (formData) => {
     console.log("Form Data:", formData);
     // create task
-    const url = `http://127.0.0.1:3000/categories/${catId}/tasks`;
+    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks`;
     const method = "POST";
 
     fetch(url, {
@@ -221,6 +257,7 @@ export default function MainDash(props) {
         console.error(error);
       });
   };
+
   const navContainerRef = useRef(null);
 
   const enableScrollOnHover = () => {
@@ -265,6 +302,82 @@ export default function MainDash(props) {
 
     console.log("toggle clicked");
   };
+  const toggleEditTask = (taskId) => {
+    console.log("Toggle Edit Task Called");
+    setIsEditingTask((prevState) => !prevState);
+    setEditTaskId(taskId);
+    console.log("Task ID:", taskId);
+  };
+
+  const handleEditTaskSubmit = (formData) => {
+    const url = `http://127.0.0.1:3000/categories/${catId}/tasks/${editTaskId}`;
+    const method = "PUT";
+
+    fetch(url, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationHeader,
+      },
+      body: JSON.stringify({
+        task: {
+          name: formData.task_name,
+          body: formData.task_body,
+        },
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Failed to edit task");
+        }
+      })
+      .then((data) => {
+        console.log(data);
+        if (data.id) {
+          console.log("data.id exists");
+          setAddCategory(false);
+          setIsEditingTask(false);
+          setAddTask(false);
+          fetchCategories();
+          fetchCategoryData(data.category_id);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+  const handleDeleteTask = () => {
+    const method = "DELETE";
+    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks/${editTaskId}`;
+    fetch(url, {
+      method: method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationHeader,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Failed to delete task");
+        }
+      })
+      .then((data) => {
+        console.log(data);
+        if (!data.errors && data.message) {
+          setIsEditingTask(false);
+          setAddTask(false);
+          fetchCategoryData(activeTab);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   return (
     <>
       <div className="main-dash">
@@ -311,18 +424,27 @@ export default function MainDash(props) {
         <div className="text-muted main-dash-body border-bottom border-top">
           {addCategory || isEditing ? (
             <CategoryForm
+              handleDeleteCategory={handleDeleteCategory}
+              setIsEditing={setIsEditing}
               error={error}
               setError={setError}
               isEditing={isEditing}
               handleSubmitCategory={handleSubmitCategory}
               handleUpdateCategory={handleUpdateCategory}
             />
-          ) : addTask ? (
+          ) : addTask || isEditingTask ? (
             <>
-              <TaskForm handleSubmitTask={handleSubmitTask} />
+              <TaskForm
+                handleDeleteTask={handleDeleteTask}
+                isEditingTask={isEditingTask}
+                setIsEditingTask={setIsEditingTask}
+                handleSubmitTask={handleSubmitTask}
+                handleEditTaskSubmit={handleEditTaskSubmit}
+              />
             </>
           ) : categoryData.length > 0 && activeTab ? (
             <>
+              {console.log(categoryData)}
               <div className="accordion-container my-1">
                 {categoryData.map((category) => (
                   <div className="accordion my-1" key={category.id}>
@@ -332,7 +454,7 @@ export default function MainDash(props) {
                     >
                       <h2 className="accordion-header">
                         <button
-                          className="accordion-button collapsed"
+                          className="ff-secondary fw-700 accordion-button collapsed"
                           type="button"
                           data-bs-toggle="collapse"
                           data-bs-target={`#collapse-${category.id}`}
@@ -348,7 +470,20 @@ export default function MainDash(props) {
                         aria-labelledby={`accordionExample-${category.id}`}
                         data-bs-parent={`#accordionExample-${category.id}`}
                       >
-                        <div className="accordion-body">{category.body}</div>
+                        <div className="accordion-body ff-primary fw-400">
+                          {category.body}
+                          <button
+                            onClick={() => toggleEditTask(category.id)}
+                            type="button"
+                            className="btn"
+                          >
+                            <img
+                              style={{ height: "15px" }}
+                              src={Edit}
+                              alt="Edit"
+                            />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -368,15 +503,20 @@ export default function MainDash(props) {
           )}
         </div>
         <div className="footer">
-          <button
-            onClick={toggleAddCategory}
-            type="button"
-            className="mr-1 btn-primary btn"
-          >
-            {" "}
-            {addCategory ? <>Cancel</> : <>Add category</>}
-          </button>
-          {activeTab && (
+          {!isEditingTask && !isEditing ? (
+            <button
+              onClick={toggleAddCategory}
+              type="button"
+              className="mr-1 btn-primary btn"
+            >
+              {" "}
+              {addCategory ? <>Cancel</> : <>Add category</>}
+            </button>
+          ) : (
+            <></>
+          )}
+
+          {activeTab && !isEditingTask && !isEditing ? (
             <>
               <button
                 type="button"
@@ -387,6 +527,8 @@ export default function MainDash(props) {
                 {addTask ? <>Cancel</> : <>Add Task</>}
               </button>
             </>
+          ) : (
+            <></>
           )}
         </div>
       </div>

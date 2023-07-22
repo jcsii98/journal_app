@@ -15,44 +15,43 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState(null);
 
-  const checkTokenValidity = () => {
-    const storedToken = localStorage.getItem("token");
-    const storedUserId = localStorage.getItem("userId");
-    if (storedToken && storedUserId) {
-      const url = `http://127.0.0.1:3000/user/${storedUserId}`;
-      fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Token ${storedToken}`,
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data);
-          if (data.token === storedToken) {
-            setUserDetails(data);
-            setIsTokenValid(true);
-          } else {
+  useEffect(() => {
+    const checkTokenValidity = () => {
+      const storedToken = localStorage.getItem("token");
+      const storedUserId = localStorage.getItem("userId");
+      if (storedToken && storedUserId) {
+        const url = `https://journal-api-cxui.onrender.com/user/${storedUserId}`;
+        fetch(url, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${storedToken}`,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            if (data.token === storedToken) {
+              setUserDetails(data);
+              setIsTokenValid(true);
+            } else {
+              setIsTokenValid(false);
+              localStorage.clear();
+            }
+            setIsLoading(false); // Hide the loading screen after token validation
+          })
+          .catch((error) => {
             setIsTokenValid(false);
             localStorage.clear();
-          }
-          setIsLoading(false); // Hide the loading screen after token validation
-        })
-        .catch((error) => {
-          setIsTokenValid(false);
-          localStorage.clear();
-          console.error(error);
-          setIsLoading(false); // Hide the loading screen in case of an error
-        });
-    } else {
-      setIsTokenValid(false);
-      localStorage.clear();
-      setIsLoading(false); // Hide the loading screen when there's no token
-    }
-  };
-
-  useEffect(() => {
+            console.error(error);
+            setIsLoading(false); // Hide the loading screen in case of an error
+          });
+      } else {
+        setIsTokenValid(false);
+        localStorage.clear();
+        setIsLoading(false); // Hide the loading screen when there's no token
+      }
+    };
     checkTokenValidity();
   }, []); // Empty dependency array to call the function once on initial render
 

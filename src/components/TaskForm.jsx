@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 export default function TaskForm(props) {
-  const { handleSubmitTask, error, setError } = props;
+  const {
+    handleDeleteTask,
+    isEditingTask,
+    setIsEditingTask,
+    handleSubmitTask,
+    handleEditTaskSubmit,
+    error,
+    setError,
+    taskId,
+  } = props;
   const [formData, setFormData] = useState({
     task_name: "",
     task_body: "",
@@ -12,16 +21,29 @@ export default function TaskForm(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (!isEditingTask) {
+      console.log("Submit new task");
+      handleSubmitTask(formData);
+    } else {
+      console.log("Edit task");
+      handleEditTaskSubmit(formData);
+    }
+    event.preventDefault();
     console.log("Form data before submitting:", formData); // Log the formData before submitting
-    handleSubmitTask(formData);
+
     console.log("Form data after submitting:", formData); // Log the formData after submitting
   };
 
+  const cancelEdit = () => {
+    setIsEditingTask(false);
+  };
   return (
     <>
       <div className="form-container">
         <div className="mb-3">
-          <h1 className="fw-700 font-color-primary">Submit a new task</h1>
+          <h1 className="fw-700 font-color-primary">
+            {isEditingTask ? <>Edit Task</> : <>Submit a new task</>}
+          </h1>
         </div>
         <form className="font-color-primary" onSubmit={handleSubmit}>
           <div className="mb-3">
@@ -53,9 +75,28 @@ export default function TaskForm(props) {
             </div>
           </div>
           {error && <div className="text-danger mb-3">{error}</div>}
-          <button className="btn-primary btn" type="submit">
+
+          <button className="mr-1 btn-primary btn" type="submit">
             Submit Task
           </button>
+          {isEditingTask && (
+            <>
+              <button
+                onClick={cancelEdit}
+                className="mr-1 btn-primary btn"
+                type="button"
+              >
+                Cancel Edit
+              </button>
+              <button
+                onClick={handleDeleteTask}
+                className="mr-1 btn-primary btn"
+                type="button"
+              >
+                Delete
+              </button>
+            </>
+          )}
         </form>
       </div>
     </>
