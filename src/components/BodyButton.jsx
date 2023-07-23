@@ -13,6 +13,7 @@ export default function BodyButton(props) {
     setCategoryData,
     setIsEditing,
     fetchCategoryData,
+    setIsEditingTask,
   } = props;
   const [isActive, setIsActive] = useState(false);
 
@@ -27,6 +28,7 @@ export default function BodyButton(props) {
       setAddCategory(false);
       setAddTask(false);
       setIsEditing(false);
+      setIsEditingTask(false);
       if (buttonClicked === previousBtn) {
         setActiveTab(null);
       } else {

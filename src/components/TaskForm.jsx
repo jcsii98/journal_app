@@ -9,10 +9,13 @@ export default function TaskForm(props) {
     error,
     setError,
     taskId,
+    formIsLoading,
+    setFormIsLoading,
   } = props;
   const [formData, setFormData] = useState({
     task_name: "",
     task_body: "",
+    task_due_date: "",
   });
 
   const handleChange = (event) => {
@@ -21,21 +24,38 @@ export default function TaskForm(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    setError(null);
+
+    // Format the date to UTC before submitting the form
+    const formattedDate = formatDateForBackend(formData.task_due_date);
+
     if (!isEditingTask) {
       console.log("Submit new task");
-      handleSubmitTask(formData);
+      handleSubmitTask({
+        task_name: formData.task_name,
+        task_body: formData.task_body,
+        task_due_date: formattedDate,
+      });
     } else {
       console.log("Edit task");
-      handleEditTaskSubmit(formData);
+      handleEditTaskSubmit({
+        task_name: formData.task_name,
+        task_body: formData.task_body,
+        task_due_date: formattedDate,
+      });
     }
-    event.preventDefault();
-    console.log("Form data before submitting:", formData); // Log the formData before submitting
-
-    console.log("Form data after submitting:", formData); // Log the formData after submitting
   };
 
   const cancelEdit = () => {
     setIsEditingTask(false);
+  };
+
+  const formatDateForBackend = (dateString) => {
+    const dateObject = new Date(dateString);
+    const utcYear = dateObject.getUTCFullYear();
+    const utcMonth = String(dateObject.getUTCMonth() + 1).padStart(2, "0");
+    const utcDay = String(dateObject.getUTCDate()).padStart(2, "0");
+    return `${utcYear}-${utcMonth}-${utcDay}`;
   };
   return (
     <>
@@ -73,8 +93,21 @@ export default function TaskForm(props) {
                 placeholder="Leave out food for Nala"
               ></input>
             </div>
+            <div className="form-group mb-1">
+              <label className="fw-400" htmlFor="task_name">
+                Due date (optional)
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                onChange={handleChange}
+                name="task_due_date"
+                value={formData.task_due_date}
+              ></input>
+            </div>
           </div>
-          {error && <div className="text-danger mb-3">{error}</div>}
+          {formIsLoading && <div className="text-muted mb-3">Loading</div>}
+          {error && <div className="alert alert-error mb-3">{error}</div>}
 
           <button className="mr-1 btn-primary btn" type="submit">
             Submit Task

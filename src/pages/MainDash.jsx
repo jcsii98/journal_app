@@ -20,26 +20,52 @@ export default function MainDash(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditingTask, setIsEditingTask] = useState(false);
+  const [formIsLoading, setFormIsLoading] = useState(false);
   const [editTaskId, setEditTaskId] = useState("");
   const catId = activeTab;
   const storedToken = localStorage.getItem("token");
   const authorizationHeader = `Token ${storedToken}`;
-
+  const [deleted, setDeleted] = useState(false);
+  const [focusData, setFocusData] = useState([]);
+  const [focusClicked, setFocusClicked] = useState(false);
+  const [editTaskCategoryId, setEditTaskCategoryId] = useState("");
   useEffect(() => {
     fetchCategories();
+    fetchFocus();
   }, []);
+
+  const fetchFocus = () => {
+    console.log("fetch focus called");
+    fetch("http://127.0.0.1:3000/categories/tasks/due_today", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authorizationHeader,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setFocusData(data); // Set the focusData to the response data directly
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   const toggleAddCategory = () => {
+    setDeleted(false);
+    setError(false);
     setAddTask(false);
     setIsEditing(false);
     setAddCategory((prevState) => !prevState);
 
     console.log("toggle clicked");
   };
+
   const fetchCategories = () => {
     console.log("fetch called");
-    const storedToken = localStorage.getItem("token");
-    const authorizationHeader = `Token ${storedToken}`;
-    fetch("https://journal-api-cxui.onrender.com/categories", {
+    fetch("http://127.0.0.1:3000/categories", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -61,9 +87,12 @@ export default function MainDash(props) {
   };
 
   const handleActiveTabChange = (categoryId) => {
+    setError(false);
+    setDeleted(false);
     setAddCategory(false);
     setAddTask(false);
     setIsEditing(false);
+    setFocusClicked(false);
     setActiveTab(categoryId);
   };
   useEffect(() => {
@@ -72,8 +101,9 @@ export default function MainDash(props) {
 
   const handleSubmitCategory = (formData) => {
     event.preventDefault();
+    setFormIsLoading(true);
     // Create or update the category
-    const url = "https://journal-api-cxui.onrender.com/categories";
+    const url = "http://127.0.0.1:3000/categories";
     const method = "POST";
 
     fetch(url, {
@@ -93,6 +123,7 @@ export default function MainDash(props) {
           return response.json();
         } else {
           return response.json().then((data) => {
+            setFormIsLoading(false);
             throw new Error(data.errors.join(", "));
           });
         }
@@ -100,14 +131,17 @@ export default function MainDash(props) {
       .then((data) => {
         console.log(data);
         if (!data.errors && data.id) {
+          setFormIsLoading(false);
           setAddCategory(false);
           setIsEditing(false);
           fetchCategories();
         } else {
+          setFormIsLoading(false);
           setError(data.errors);
         }
       })
       .catch((error) => {
+        setFormIsLoading(false);
         console.error(error);
         // Handle and display the error in your UI
         setError(error.message);
@@ -117,7 +151,7 @@ export default function MainDash(props) {
   const handleDeleteCategory = () => {
     const method = "DELETE";
 
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}?`;
+    const url = `http://127.0.0.1:3000/categories/${catId}?`;
     fetch(url, {
       method: method,
       headers: {
@@ -138,6 +172,7 @@ export default function MainDash(props) {
         console.log(data);
         if (data.message == "Category successfully deleted") {
           console.log("Category Deleted");
+          setDeleted(true);
           setAddCategory(false);
           setIsEditing(false);
           fetchCategories();
@@ -150,12 +185,13 @@ export default function MainDash(props) {
   };
 
   const handleUpdateCategory = (formData) => {
+    setFormIsLoading(true);
     event.preventDefault();
 
     // delete category
     const method = "PUT";
 
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}?`;
+    const url = `http://127.0.0.1:3000/${catId}?`;
     fetch(url, {
       method: method,
       headers: {
@@ -173,6 +209,7 @@ export default function MainDash(props) {
           return response.json();
         } else {
           return response.json().then((data) => {
+            setFormIsLoading(false);
             throw new Error(data.errors.join(", "));
           });
         }
@@ -180,14 +217,17 @@ export default function MainDash(props) {
       .then((data) => {
         console.log(data);
         if (!data.errors) {
+          setFormIsLoading(false);
           setAddCategory(false);
           setIsEditing(false);
           fetchCategories();
         } else {
+          setFormIsLoading(false);
           setError(data.errors);
         }
       })
       .catch((error) => {
+        setFormIsLoading(false);
         console.error(error);
         // Handle and display the error in your UI
         setError(error.message);
@@ -197,7 +237,7 @@ export default function MainDash(props) {
     console.log("categoryId:", categoryId);
     const storedToken = localStorage.getItem("token");
     const authorizationHeader = `Token ${storedToken}`;
-    const url = `https://journal-api-cxui.onrender.com/categories/${categoryId}/tasks/`;
+    const url = `http://127.0.0.1:3000/categories/${categoryId}/tasks`;
 
     fetch(url, {
       method: "GET",
@@ -223,9 +263,10 @@ export default function MainDash(props) {
       });
   };
   const handleSubmitTask = (formData) => {
+    setFormIsLoading(true);
     console.log("Form Data:", formData);
     // create task
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks`;
+    const url = `http://127.0.0.1:3000/categories/${catId}/tasks`;
     const method = "POST";
 
     fetch(url, {
@@ -238,6 +279,7 @@ export default function MainDash(props) {
         task: {
           name: formData.task_name,
           body: formData.task_body,
+          due_date: formData.task_due_date,
         },
       }),
     })
@@ -245,16 +287,26 @@ export default function MainDash(props) {
         if (response.ok) {
           return response.json();
         } else {
+          setFormIsLoading(false);
           throw new Error("Failed to create task");
         }
       })
       .then((data) => {
         console.log(data);
-        fetchCategoryData(data.category_id);
-        setAddTask(false);
+        if (data.id) {
+          setFormIsLoading(false);
+          fetchCategoryData(data.category_id);
+          setAddTask(false);
+          fetchFocus();
+        } else {
+          setFormIsLoading(false);
+          setError(data.errors);
+        }
       })
       .catch((error) => {
+        setFormIsLoading(false);
         console.error(error);
+        setError(error.message);
       });
   };
 
@@ -297,20 +349,25 @@ export default function MainDash(props) {
   }, [navContainerRef.current]);
 
   const toggleAddTask = () => {
+    setDeleted(false);
+    setError(false);
     setAddCategory(false);
     setAddTask((prevState) => !prevState);
 
     console.log("toggle clicked");
   };
-  const toggleEditTask = (taskId) => {
+  const toggleEditTask = (taskId, categoryId) => {
+    setDeleted(false);
+    setError(false);
     console.log("Toggle Edit Task Called");
     setIsEditingTask((prevState) => !prevState);
     setEditTaskId(taskId);
+    setEditTaskCategoryId(categoryId);
     console.log("Task ID:", taskId);
   };
 
   const handleEditTaskSubmit = (formData) => {
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks/${editTaskId}`;
+    const url = `http://127.0.0.1:3000/categories/${editTaskCategoryId}/tasks/${editTaskId}`;
     const method = "PUT";
 
     fetch(url, {
@@ -323,6 +380,7 @@ export default function MainDash(props) {
         task: {
           name: formData.task_name,
           body: formData.task_body,
+          due_date: formData.task_due_date,
         },
       }),
     })
@@ -342,6 +400,7 @@ export default function MainDash(props) {
           setAddTask(false);
           fetchCategories();
           fetchCategoryData(data.category_id);
+          fetchFocus();
         }
       })
       .catch((error) => {
@@ -350,7 +409,7 @@ export default function MainDash(props) {
   };
   const handleDeleteTask = () => {
     const method = "DELETE";
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks/${editTaskId}`;
+    const url = `http://127.0.0.1:3000/categories/${catId}/tasks/${editTaskId}`;
     fetch(url, {
       method: method,
       headers: {
@@ -367,17 +426,40 @@ export default function MainDash(props) {
       })
       .then((data) => {
         console.log(data);
+        setDeleted(true);
         if (!data.errors && data.message) {
           setIsEditingTask(false);
           setAddTask(false);
           fetchCategoryData(activeTab);
+          fetchFocus();
         }
       })
       .catch((error) => {
         console.error(error);
       });
   };
+  const handleFocusClick = (categoryId) => {
+    console.log("Focus Clicked");
+    console.log(focusData);
+    setActiveTab("focus");
+    console.log(activeTab);
 
+    if (
+      event.target.tagName === "LABEL" ||
+      event.target.tagName === "DIV" ||
+      event.target.tagName === "INPUT"
+    ) {
+      setAddCategory(false);
+      setAddTask(false);
+      setIsEditing(false);
+      setIsEditingTask(false);
+
+      setCategoryData(focusData);
+      console.log("categoryData");
+      setFocusClicked(true);
+      setActiveTab("focus");
+    }
+  };
   return (
     <>
       <div className="main-dash">
@@ -394,8 +476,34 @@ export default function MainDash(props) {
               className="slider-nav btn-group btn-group-toggle"
               data-toggle="buttons"
             >
+              {focusData.length > 0 && (
+                <>
+                  <label
+                    className={`body-btn btn-show-edit ff-primary fw-400 btn btn-secondary ${
+                      activeTab === "focus" ? "active" : ""
+                    }`}
+                    onClick={handleFocusClick}
+                    style={{
+                      height: "40px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="option"
+                      id="focus"
+                      autoComplete="off"
+                      style={{ display: "none" }}
+                    />
+                    <div>Today</div>
+                  </label>
+                </>
+              )}
               {categories.map((category) => (
                 <BodyButton
+                  setIsEditingTask={setIsEditingTask}
                   fetchCategoryData={fetchCategoryData}
                   setActiveTab={setActiveTab}
                   activeTab={activeTab}
@@ -424,6 +532,8 @@ export default function MainDash(props) {
         <div className="text-muted main-dash-body border-bottom border-top">
           {addCategory || isEditing ? (
             <CategoryForm
+              formIsLoading={formIsLoading}
+              setFormIsLoading={setFormIsLoading}
               handleDeleteCategory={handleDeleteCategory}
               setIsEditing={setIsEditing}
               error={error}
@@ -435,6 +545,10 @@ export default function MainDash(props) {
           ) : addTask || isEditingTask ? (
             <>
               <TaskForm
+                error={error}
+                setError={setError}
+                formIsLoading={formIsLoading}
+                setFormIsLoading={setFormIsLoading}
                 handleDeleteTask={handleDeleteTask}
                 isEditingTask={isEditingTask}
                 setIsEditingTask={setIsEditingTask}
@@ -442,7 +556,7 @@ export default function MainDash(props) {
                 handleEditTaskSubmit={handleEditTaskSubmit}
               />
             </>
-          ) : categoryData.length > 0 && activeTab ? (
+          ) : categoryData.length > 0 && (activeTab || focusClicked) ? (
             <>
               {console.log(categoryData)}
               <div className="accordion-container my-1">
@@ -473,7 +587,9 @@ export default function MainDash(props) {
                         <div className="accordion-body ff-primary fw-400">
                           {category.body}
                           <button
-                            onClick={() => toggleEditTask(category.id)}
+                            onClick={() =>
+                              toggleEditTask(category.id, category.category_id)
+                            }
                             type="button"
                             className="btn"
                           >
@@ -491,15 +607,19 @@ export default function MainDash(props) {
               </div>
             </>
           ) : activeTab ? (
-            <h4>Add a task</h4>
+            deleted ? (
+              <h4>Task deleted</h4>
+            ) : (
+              <h4>Add a task</h4>
+            )
           ) : categories.length > 0 ? (
             <>
               <h4>Select Category</h4>
             </>
+          ) : deleted ? (
+            <h4>Category deleted</h4>
           ) : (
-            <>
-              <h4>Add category to start</h4>
-            </>
+            <h4>Add category to start</h4>
           )}
         </div>
         <div className="footer">
@@ -516,7 +636,7 @@ export default function MainDash(props) {
             <></>
           )}
 
-          {activeTab && !isEditingTask && !isEditing ? (
+          {activeTab !== "focus" && !isEditingTask && !isEditing ? (
             <>
               <button
                 type="button"

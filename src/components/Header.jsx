@@ -49,7 +49,7 @@ export default function Header(props) {
               className="btn btn-secondary"
               onClick={handleSignout}
             >
-              Signout
+              Sign out
             </button>
           </div>
         </>

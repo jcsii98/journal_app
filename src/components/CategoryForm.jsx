@@ -10,6 +10,8 @@ export default function CategoryForm(props) {
     error,
     setError,
     handleDeleteCategory,
+    formIsLoading,
+    setFormIsLoading,
   } = props;
   const [formData, setFormData] = useState({
     category_name: "",
@@ -20,6 +22,7 @@ export default function CategoryForm(props) {
   };
 
   const handleSubmit = (event) => {
+    setError(null);
     event.preventDefault();
     if (!isEditing) {
       handleSubmitCategory(formData);
@@ -28,6 +31,7 @@ export default function CategoryForm(props) {
     }
   };
   const cancelEdit = () => {
+    setFormIsLoading(false);
     setIsEditing(false);
   };
   return (
@@ -55,6 +59,7 @@ export default function CategoryForm(props) {
             </div>
           </div>
           {error && <div className="text-danger mb-3">{error}</div>}
+          {formIsLoading && <div className="text-muted mb-3">Loading</div>}
           {isEditing && (
             <>
               <button
@@ -73,6 +78,7 @@ export default function CategoryForm(props) {
               </button>
             </>
           )}
+
           <button className="mr-1 btn-primary btn" type="submit">
             Submit
           </button>
