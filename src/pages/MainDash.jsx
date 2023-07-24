@@ -460,6 +460,11 @@ export default function MainDash(props) {
       setActiveTab("focus");
     }
   };
+  const formatDateToWordFormat = (dateString) => {
+    const date = new Date(dateString);
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return date.toLocaleDateString(undefined, options);
+  };
   return (
     <>
       <div className="main-dash">
@@ -585,20 +590,47 @@ export default function MainDash(props) {
                         data-bs-parent={`#accordionExample-${category.id}`}
                       >
                         <div className="accordion-body ff-primary fw-400">
-                          {category.body}
-                          <button
-                            onClick={() =>
-                              toggleEditTask(category.id, category.category_id)
-                            }
-                            type="button"
-                            className="btn"
-                          >
-                            <img
-                              style={{ height: "15px" }}
-                              src={Edit}
-                              alt="Edit"
-                            />
-                          </button>
+                          <div class="display-flex my-1 py-1 task-body-container">
+                            <div class="display-flex flex-column details-container">
+                              <div class="accordion-body-row align-self-start display-flex my-1">
+                                {" "}
+                                <dt class="col-sm-3 mr-3">Details</dt>
+                                <dd class="display-flex col-sm-9 align-items-center">
+                                  {category.body}
+                                </dd>
+                              </div>
+
+                              {category.due_date && (
+                                <div class="accordion-body-row align-self-start display-flex py-1 border-top">
+                                  <dt class="col-sm-3 mr-3">Due Date</dt>
+                                  <dd class="display-flex  col-sm-9 align-items-center">
+                                    <p>
+                                      {formatDateToWordFormat(
+                                        category.due_date
+                                      )}
+                                    </p>
+                                  </dd>
+                                </div>
+                              )}
+                            </div>
+
+                            <button
+                              onClick={() =>
+                                toggleEditTask(
+                                  category.id,
+                                  category.category_id
+                                )
+                              }
+                              type="button"
+                              className="btn"
+                            >
+                              <img
+                                style={{ height: "auto", width: "18px" }}
+                                src={Edit}
+                                alt="Edit"
+                              />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -18,6 +18,10 @@ export default function TaskForm(props) {
     task_due_date: "",
   });
 
+  const cancelEdit = () => {
+    setIsEditingTask(false);
+  };
+
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
@@ -25,38 +29,46 @@ export default function TaskForm(props) {
   const handleSubmit = (event) => {
     event.preventDefault();
     setError(null);
-
-    // Format the date to UTC before submitting the form
-    const formattedDate = formatDateForBackend(formData.task_due_date);
+    // Check the value of formData.task_due_date
+    console.log("Due Date Value:", formData.task_due_date);
 
     if (!isEditingTask) {
       console.log("Submit new task");
       handleSubmitTask({
         task_name: formData.task_name,
         task_body: formData.task_body,
-        task_due_date: formattedDate,
+        task_due_date: formData.task_due_date,
       });
     } else {
       console.log("Edit task");
       handleEditTaskSubmit({
         task_name: formData.task_name,
         task_body: formData.task_body,
-        task_due_date: formattedDate,
+        task_due_date: formData.task_due_date,
       });
     }
   };
 
-  const cancelEdit = () => {
-    setIsEditingTask(false);
-  };
+  // const formatDateForBackend = (dateString, userTimeZone) => {
+  //   // Parse the input date string using the user's time zone
+  //   const userDate = new Date(`${dateString}T12:00:00${userTimeZone}`);
 
-  const formatDateForBackend = (dateString) => {
-    const dateObject = new Date(dateString);
-    const utcYear = dateObject.getUTCFullYear();
-    const utcMonth = String(dateObject.getUTCMonth() + 1).padStart(2, "0");
-    const utcDay = String(dateObject.getUTCDate()).padStart(2, "0");
-    return `${utcYear}-${utcMonth}-${utcDay}`;
-  };
+  //   // Get the user's local date in UTC by subtracting the time zone offset in milliseconds
+  //   const utcDate = new Date(
+  //     userDate.getTime() - userDate.getTimezoneOffset() * 60000
+  //   );
+
+  //   // Get the UTC year, month, and day components
+  //   const utcYear = utcDate.getUTCFullYear();
+  //   const utcMonth = String(utcDate.getUTCMonth() + 1).padStart(2, "0");
+  //   const utcDay = String(utcDate.getUTCDate()).padStart(2, "0");
+
+  //   // Assemble the formatted date in "YYYY-MM-DD" format
+  //   const formattedDate = `${utcYear}-${utcMonth}-${utcDay}`;
+
+  //   return formattedDate;
+  // };
+
   return (
     <>
       <div className="form-container">

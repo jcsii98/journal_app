@@ -6,6 +6,7 @@ Box sizing rules *,
 
 * {
   box-shadow: none;
+  user-select: none;
 }
 /* Remove default margin */
 body,
@@ -171,6 +172,10 @@ body {
   height: 40px;
 }
 
+.details-container {
+  width: 400px;
+  align-items: center;
+}
 /* forms */
 
 .form-container {
@@ -262,6 +267,9 @@ body {
 .mr-1 {
   margin-right: 10px;
 }
+.mr-3 {
+  margin-right: 30px;
+}
 .ml-1 {
   margin-left: 10px;
 }
@@ -274,6 +282,10 @@ body {
   padding-right: 15px;
 }
 
+.py-1 {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
 .py-2 {
   padding-top: 20px;
   padding-bottom: 20px;
@@ -290,7 +302,9 @@ body {
 .flex-column {
   flex-direction: column;
 }
-
+.align-self-start {
+  align-self: start;
+}
 .font-color-primary {
   color: #242325;
 }
@@ -336,6 +350,10 @@ body {
   align-items: center;
   justify-content: space-between;
 }
+
+.accordion-body-row {
+  width: 100%;
+}
 .accordion-button:focus {
   box-shadow: none;
 }
@@ -344,4 +362,9 @@ body {
   display: flex;
   justify-content: space-between;
   flex-direction: column;
+}
+
+.task-body-container {
+  width: 100%;
+  justify-content: space-between;
 }
