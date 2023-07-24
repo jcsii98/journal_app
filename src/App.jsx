@@ -20,7 +20,7 @@ function App() {
       const storedToken = localStorage.getItem("token");
       const storedUserId = localStorage.getItem("userId");
       if (storedToken && storedUserId) {
-        const url = `http://127.0.0.1:3000/user/${storedUserId}`;
+        const url = `https://journal-api-cxui.onrender.com/user/${storedUserId}`;
         fetch(url, {
           method: "GET",
           headers: {
