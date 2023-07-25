@@ -43,20 +43,24 @@ export default function LoginPage(props) {
     })
       .then((response) => {
         if (!response.ok) {
-          console.log(response);
-          return response.json().then((data) => {
-            // Check if the response contains the email error
-            if (data.email && data.email.length > 0) {
-              setIsLoading(false);
-              throw new Error(`Email: ${data.email[0]}`); // Throw an error with the server's error message
-            } else {
-              setIsLoading(false);
-              throw new Error("Credentials invalid");
-            }
-          });
-        } else {
-          setIsLoading(false);
+          if (response.status === 422) {
+            console.log(response);
+            return response.json().then((data) => {
+              // Check if the response contains the email error
+              if (data.email && data.email.length > 0) {
+                setIsLoading(false);
+                throw new Error(`Email: ${data.email[0]}`); // Throw an error with the server's error message
+              } else {
+                setIsLoading(false);
+                throw new Error("Credentials invalid");
+              }
+            });
+          } else {
+            setIsLoading(false);
+            throw new Error("Network response was not ok");
+          }
         }
+        return response.json();
       })
       .then((data) => {
         setIsLoading(false);
