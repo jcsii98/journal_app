@@ -528,7 +528,7 @@ export default function MainDash(props) {
           ) : (
             !addCategory && (
               <div className="my-1">
-                <h2 className="text-muted">Your categories</h2>
+                <h2 className="text-muted">No tasks for now</h2>
               </div>
             )
           )}
@@ -668,7 +668,11 @@ export default function MainDash(props) {
             <></>
           )}
 
-          {activeTab !== "focus" && !isEditingTask && !isEditing ? (
+          {categories.length > 0 &&
+          activeTab &&
+          activeTab !== "focus" &&
+          !isEditingTask &&
+          !isEditing ? (
             <>
               <button
                 type="button"
