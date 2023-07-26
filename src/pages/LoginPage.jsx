@@ -26,9 +26,10 @@ export default function LoginPage(props) {
   const handleSignup = (formData) => {
     setIsLoading(true);
     setError(null);
-    const url = "https://journal-api-cxui.onrender.com/auth/signup";
+    const url = "http://127.0.0.1:3000/auth/signup";
+    const method = "POST";
     fetch(url, {
-      method: "POST",
+      method: method,
       headers: {
         "Content-Type": "application/json",
       },
@@ -44,19 +45,14 @@ export default function LoginPage(props) {
       .then((response) => {
         if (!response.ok) {
           if (response.status === 422) {
-            console.log(response);
             return response.json().then((data) => {
-              // Check if the response contains the email error
               if (data.email && data.email.length > 0) {
-                setIsLoading(false);
-                throw new Error(`Email: ${data.email[0]}`); // Throw an error with the server's error message
+                throw new Error(`Email ${data.email[0]}`);
               } else {
-                setIsLoading(false);
                 throw new Error("Credentials invalid");
               }
             });
           } else {
-            setIsLoading(false);
             throw new Error("Network response was not ok");
           }
         }
@@ -64,35 +60,29 @@ export default function LoginPage(props) {
       })
       .then((data) => {
         setIsLoading(false);
+        console.log(data);
 
-        console.log(data); // Display the response data in the console
-
-        if (data.user) {
+        if (data.token && data.user) {
           // Handle successful signup
+
+          // store token n user deets
           localStorage.setItem("token", data.token);
-          // Update state or perform any other actions here if needed
+
           const userProperties = ["id", "email", "name"];
           userProperties.forEach((property) => {
             localStorage.setItem(
               `user${property.charAt(0).toUpperCase() + property.slice(1)}`,
               data.user[property]
             );
-            console.log(
-              `${property.charAt(0).toUpperCase() + property.slice(1)}: ` +
-                localStorage.getItem(
-                  `user${property.charAt(0).toUpperCase() + property.slice(1)}`
-                )
-            );
           });
           setIsTokenValid(true);
           setIsLoggedIn(true);
+        } else if (data.error) {
+          setError(data.error);
         }
       })
       .catch((error) => {
         setIsLoading(false);
-        console.error(error); // Log any network or other errors
-
-        // Display the specific error message
         setError(error.message);
       });
   };
@@ -100,7 +90,7 @@ export default function LoginPage(props) {
   const handleSignin = (formData) => {
     setIsLoading(true);
     setError(null);
-    const url = "https://journal-api-cxui.onrender.com/auth/signin";
+    const url = "http://127.0.0.1:3000/auth/signin";
     fetch(url, {
       method: "POST",
       headers: {
@@ -122,7 +112,7 @@ export default function LoginPage(props) {
       })
       .then((data) => {
         console.log(data);
-        if (data.user) {
+        if (data.user && data.token !== "not found") {
           setIsLoading(false);
           // Successful authentication
           // store token in localstorage
