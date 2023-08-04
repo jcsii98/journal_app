@@ -14,7 +14,7 @@ export default function LoginPage(props) {
   const [signinEmail, setSigninEmail] = useState("");
   const [signinPassword, setSigninPassword] = useState("");
 
-  const API_URL = "http://127.0.0.1:3000/auth";
+  const API_URL = "https://journal-api-cxui.onrender.com/auth";
 
   const handleSignup = async (event) => {
     event.preventDefault();

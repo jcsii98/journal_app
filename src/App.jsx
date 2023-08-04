@@ -17,14 +17,17 @@ function App() {
     if (loggedIn) {
       try {
         // Send a request to the backend to validate the tokens
-        const response = await fetch("http://127.0.0.1:3000/validate_token", {
-          method: "GET",
-          headers: {
-            "access-token": accessToken,
-            uid: uid,
-            client: client,
-          },
-        });
+        const response = await fetch(
+          "https://journal-api-cxui.onrender.com/validate_token",
+          {
+            method: "GET",
+            headers: {
+              "access-token": accessToken,
+              uid: uid,
+              client: client,
+            },
+          }
+        );
 
         // Assuming your backend returns a JSON response with a "valid" property
         const data = await response.json();

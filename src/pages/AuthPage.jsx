@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API_URL = "http://127.0.0.1:3000/auth";
+const API_URL = "https://journal-api-cxui.onrender.com/auth";
 
 const AuthPage = () => {
   const [signupEmail, setSignupEmail] = useState("");
