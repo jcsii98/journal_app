@@ -4,17 +4,7 @@ import CategoryForm from "../components/CategoryForm";
 import TaskForm from "../components/TaskForm";
 import Edit from "../assets/edit.png";
 export default function MainDash(props) {
-  const {
-    setIsEditing,
-    addTask,
-    setAddTask,
-    setIsTokenValid,
-    addCategory,
-    setAddCategory,
-    isEditing,
-    activeTab,
-    setActiveTab,
-  } = props;
+  const {} = props;
   const [categories, setCategories] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,9 +12,7 @@ export default function MainDash(props) {
   const [isEditingTask, setIsEditingTask] = useState(false);
   const [formIsLoading, setFormIsLoading] = useState(false);
   const [editTaskId, setEditTaskId] = useState("");
-  const catId = activeTab;
-  const storedToken = localStorage.getItem("token");
-  const authorizationHeader = `Token ${storedToken}`;
+
   const [deleted, setDeleted] = useState(false);
   const [focusData, setFocusData] = useState([]);
   const [focusClicked, setFocusClicked] = useState(false);
@@ -34,13 +22,27 @@ export default function MainDash(props) {
     fetchFocus();
   }, []);
 
+  // main states
+  const [addCategory, setAddCategory] = useState(false);
+  const [addTask, setAddTask] = useState(false);
+  const [activeTab, setActiveTab] = useState(false);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
+
+  const catId = activeTab;
+  // headers
+  const accessToken = localStorage.getItem("access-token");
+  const uid = localStorage.getItem("uid");
+  const client = localStorage.getItem("client");
+
   const fetchFocus = () => {
     console.log("fetch focus called");
     fetch("http://127.0.0.1:3000/categories/tasks/due_today", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
     })
       .then((response) => response.json())
@@ -54,10 +56,6 @@ export default function MainDash(props) {
   };
 
   const toggleAddCategory = () => {
-    setDeleted(false);
-    setError(false);
-    setAddTask(false);
-    setIsEditing(false);
     setAddCategory((prevState) => !prevState);
 
     console.log("toggle clicked");
@@ -69,7 +67,9 @@ export default function MainDash(props) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
     })
       .then((response) => response.json())
@@ -88,13 +88,12 @@ export default function MainDash(props) {
 
   const handleActiveTabChange = (categoryId) => {
     setError(false);
-    setDeleted(false);
+    setIsEditingCategory(false);
+    setIsEditingTask(false);
     setAddCategory(false);
-    setAddTask(false);
-    setIsEditing(false);
-    setFocusClicked(false);
     setActiveTab(categoryId);
   };
+
   useEffect(() => {
     console.log("categoryData changed:", categoryData);
   }, [categoryData]);
@@ -110,7 +109,9 @@ export default function MainDash(props) {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
       body: JSON.stringify({
         category: {
@@ -123,29 +124,21 @@ export default function MainDash(props) {
           return response.json();
         } else {
           return response.json().then((data) => {
-            setFormIsLoading(false);
-            throw new Error(data.errors.join(", "));
+            setError(data.errors);
           });
         }
       })
       .then((data) => {
         console.log(data);
-        if (!data.errors && data.id) {
-          setFormIsLoading(false);
-          setAddCategory(false);
-          setIsEditing(false);
+        if (!data.errors && data.id && data.user_id) {
           fetchCategories();
-        } else {
-          setFormIsLoading(false);
-          setError(data.errors);
+          setAddCategory(false);
         }
       })
       .catch((error) => {
-        setFormIsLoading(false);
         console.error(error);
-        // Handle and display the error in your UI
-        setError(error.message);
       });
+    setFormIsLoading(false);
   };
 
   const handleDeleteCategory = () => {
@@ -156,7 +149,9 @@ export default function MainDash(props) {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
     })
       .then((response) => {
@@ -164,39 +159,40 @@ export default function MainDash(props) {
           return response.json();
         } else {
           return response.json().then((data) => {
-            throw new Error(data.errors.join(", "));
+            setError(data.errors);
           });
         }
       })
       .then((data) => {
         console.log(data);
-        if (data.message == "Category successfully deleted") {
+        if (!data.errors && data.message == "Category successfully deleted") {
+          fetchCategories();
+          setActiveTab(null);
           console.log("Category Deleted");
           setDeleted(true);
           setAddCategory(false);
-          setIsEditing(false);
-          fetchCategories();
-          setActiveTab(null);
+          setIsEditingCategory(false);
         }
       })
       .catch((error) => {
         console.error(error);
       });
+    setFormIsLoading(false);
   };
 
   const handleUpdateCategory = (formData) => {
     setFormIsLoading(true);
     event.preventDefault();
-
-    // delete category
     const method = "PUT";
 
-    const url = `http://127.0.0.1:3000/${catId}?`;
+    const url = `http://127.0.0.1:3000/categories/${catId}`;
     fetch(url, {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
       body: JSON.stringify({
         category: {
@@ -209,41 +205,36 @@ export default function MainDash(props) {
           return response.json();
         } else {
           return response.json().then((data) => {
-            setFormIsLoading(false);
-            throw new Error(data.errors.join(", "));
+            console.log(data.errors);
+            setError(data.errors);
           });
         }
       })
       .then((data) => {
         console.log(data);
         if (!data.errors) {
-          setFormIsLoading(false);
-          setAddCategory(false);
-          setIsEditing(false);
           fetchCategories();
-        } else {
-          setFormIsLoading(false);
-          setError(data.errors);
+          setAddCategory(false);
+          setIsEditingCategory(false);
         }
       })
       .catch((error) => {
-        setFormIsLoading(false);
         console.error(error);
-        // Handle and display the error in your UI
-        setError(error.message);
       });
+    setFormIsLoading(false);
   };
+
   const fetchCategoryData = (categoryId) => {
     console.log("categoryId:", categoryId);
-    const storedToken = localStorage.getItem("token");
-    const authorizationHeader = `Token ${storedToken}`;
     const url = `http://127.0.0.1:3000/categories/${categoryId}/tasks`;
 
     fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
     })
       .then((response) => response.json())
@@ -252,7 +243,6 @@ export default function MainDash(props) {
         if (data.length >= 0) {
           console.log("category data exists");
           setCategoryData(data);
-          setIsLoading(false);
         } else {
           // setIsTokenValid(false);
           console.log("Token is invalid");
@@ -261,9 +251,10 @@ export default function MainDash(props) {
       .catch((error) => {
         console.error(error);
       });
+    setIsLoading(false);
   };
+
   const handleSubmitTask = (formData) => {
-    setFormIsLoading(true);
     console.log("Form Data:", formData);
     // create task
     const url = `http://127.0.0.1:3000/categories/${catId}/tasks`;
@@ -273,7 +264,9 @@ export default function MainDash(props) {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
       body: JSON.stringify({
         task: {
@@ -287,26 +280,21 @@ export default function MainDash(props) {
         if (response.ok) {
           return response.json();
         } else {
-          setFormIsLoading(false);
-          throw new Error("Failed to create task");
+          setError(data.error);
         }
       })
       .then((data) => {
         console.log(data);
         if (data.id) {
-          setFormIsLoading(false);
           fetchCategoryData(data.category_id);
           setAddTask(false);
           fetchFocus();
         } else {
-          setFormIsLoading(false);
           setError(data.errors);
         }
       })
       .catch((error) => {
-        setFormIsLoading(false);
         console.error(error);
-        setError(error.message);
       });
   };
 
@@ -374,7 +362,9 @@ export default function MainDash(props) {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
       body: JSON.stringify({
         task: {
@@ -414,7 +404,9 @@ export default function MainDash(props) {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: authorizationHeader,
+        "access-token": accessToken,
+        uid: uid,
+        client: client,
       },
     })
       .then((response) => {
@@ -426,8 +418,8 @@ export default function MainDash(props) {
       })
       .then((data) => {
         console.log(data);
-        setDeleted(true);
         if (!data.errors && data.message) {
+          setDeleted(true);
           setIsEditingTask(false);
           setAddTask(false);
           fetchCategoryData(activeTab);
@@ -451,7 +443,7 @@ export default function MainDash(props) {
     ) {
       setAddCategory(false);
       setAddTask(false);
-      setIsEditing(false);
+      setIsEditingCategory(false);
       setIsEditingTask(false);
 
       setCategoryData(focusData);
@@ -512,10 +504,9 @@ export default function MainDash(props) {
                   fetchCategoryData={fetchCategoryData}
                   setActiveTab={setActiveTab}
                   activeTab={activeTab}
-                  setIsTokenValid={setIsTokenValid}
                   key={category.id}
-                  isEditing={isEditing}
-                  setIsEditing={setIsEditing}
+                  isEditingCategory={isEditingCategory}
+                  setIsEditingCategory={setIsEditingCategory}
                   setIsLoading={setIsLoading}
                   category={category}
                   handleActiveTabChange={handleActiveTabChange}
@@ -535,17 +526,18 @@ export default function MainDash(props) {
         </div>
 
         <div className="text-muted main-dash-body border-bottom border-top">
-          {addCategory || isEditing ? (
+          {addCategory || isEditingCategory ? (
             <CategoryForm
               formIsLoading={formIsLoading}
               setFormIsLoading={setFormIsLoading}
               handleDeleteCategory={handleDeleteCategory}
-              setIsEditing={setIsEditing}
+              setIsEditingCategory={setIsEditingCategory}
               error={error}
               setError={setError}
-              isEditing={isEditing}
+              isEditingCategory={isEditingCategory}
               handleSubmitCategory={handleSubmitCategory}
               handleUpdateCategory={handleUpdateCategory}
+              // categoryName={categoryName}
             />
           ) : addTask || isEditingTask ? (
             <>
@@ -590,20 +582,20 @@ export default function MainDash(props) {
                         data-bs-parent={`#accordionExample-${category.id}`}
                       >
                         <div className="accordion-body ff-primary fw-400">
-                          <div class="display-flex my-1 py-1 task-body-container">
-                            <div class="display-flex flex-column details-container">
-                              <div class="accordion-body-row align-self-start display-flex my-1">
+                          <div className="display-flex my-1 py-1 task-body-container">
+                            <div className="display-flex flex-column details-container">
+                              <div className="accordion-body-row align-self-start display-flex my-1">
                                 {" "}
-                                <dt class="col-sm-3 mr-3">Details</dt>
-                                <dd class="display-flex col-sm-9 align-items-center">
+                                <dt className="col-sm-3 mr-3">Details</dt>
+                                <dd className="display-flex col-sm-9 align-items-center">
                                   {category.body}
                                 </dd>
                               </div>
 
                               {category.due_date && (
-                                <div class="accordion-body-row align-self-start display-flex py-1 border-top">
-                                  <dt class="col-sm-3 mr-3">Due Date</dt>
-                                  <dd class="display-flex  col-sm-9 align-items-center">
+                                <div className="accordion-body-row align-self-start display-flex py-1 border-top">
+                                  <dt className="col-sm-3 mr-3">Due Date</dt>
+                                  <dd className="display-flex  col-sm-9 align-items-center">
                                     <p>
                                       {formatDateToWordFormat(
                                         category.due_date
@@ -655,7 +647,7 @@ export default function MainDash(props) {
           )}
         </div>
         <div className="footer">
-          {!isEditingTask && !isEditing ? (
+          {!isEditingTask && !isEditingCategory ? (
             <button
               onClick={toggleAddCategory}
               type="button"
@@ -672,7 +664,7 @@ export default function MainDash(props) {
           activeTab &&
           activeTab !== "focus" &&
           !isEditingTask &&
-          !isEditing ? (
+          !isEditingCategory ? (
             <>
               <button
                 type="button"

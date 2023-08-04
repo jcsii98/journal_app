@@ -11,7 +11,7 @@ export default function BodyButton(props) {
     setActiveTab,
     handleActiveTabChange,
     setCategoryData,
-    setIsEditing,
+    setIsEditingCategory,
     fetchCategoryData,
     setIsEditingTask,
   } = props;
@@ -26,14 +26,11 @@ export default function BodyButton(props) {
 
     if (event.target.tagName === "LABEL" || event.target.tagName === "DIV") {
       setAddCategory(false);
-      setAddTask(false);
-      setIsEditing(false);
-      setIsEditingTask(false);
       if (buttonClicked === previousBtn) {
         setActiveTab(null);
       } else {
-        handleActiveTabChange(category.id);
         fetchCategoryData(category.id);
+        handleActiveTabChange(category.id);
       }
     }
   };
@@ -45,7 +42,7 @@ export default function BodyButton(props) {
   const toggleIsEditing = () => {
     setAddCategory(false);
     setAddTask(false);
-    setIsEditing((prevState) => !prevState);
+    setIsEditingCategory((prevState) => !prevState);
     console.log("editing called");
   };
   return (

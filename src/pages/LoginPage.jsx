@@ -1,168 +1,115 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function LoginPage(props) {
-  const { isTokenValid, setIsTokenValid, isLoggedIn, setIsLoggedIn } = props;
+  const { setIsLoggedIn } = props;
+  // state variables for loginPage
   const [showSignup, setShowSignup] = useState(false);
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    name: "",
-    password_confirmation: "",
-  });
 
-  const handleChange = (event) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value });
+  // state variables for signup
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupPasswordConfirm, setSignupPasswordConfirm] = useState("");
+
+  // state variables for signin
+  const [signinEmail, setSigninEmail] = useState("");
+  const [signinPassword, setSigninPassword] = useState("");
+
+  const API_URL = "http://127.0.0.1:3000/auth";
+
+  const handleSignup = async (event) => {
+    event.preventDefault();
+    if (signupPassword !== signupPasswordConfirm) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    const requestData = {
+      email: signupEmail,
+      password: signupPassword,
+      password_confirmation: signupPasswordConfirm,
+    };
+
+    const response = await fetch(`${API_URL}`, {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    await handleAuthResponse(response);
+  };
+
+  const handleSignin = async (e) => {
+    e.preventDefault();
+    const response = await fetch(`${API_URL}/sign_in`, {
+      method: "POST",
+      body: JSON.stringify({
+        email: signinEmail,
+        password: signinPassword,
+      }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    await handleAuthResponse(response);
   };
 
   const handleSignupToggle = (event) => {
     event.preventDefault();
     setShowSignup((prevState) => !prevState);
-    resetForm();
-    setError();
-  };
-
-  const handleSignup = (formData) => {
-    setIsLoading(true);
-    setError(null);
-    const url = "http://127.0.0.1:3000/auth/signup";
-    const method = "POST";
-    fetch(url, {
-      method: method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user: {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          password_confirmation: formData.password_confirmation,
-        },
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 422) {
-            return response.json().then((data) => {
-              if (data.email && data.email.length > 0) {
-                throw new Error(`Email ${data.email[0]}`);
-              } else {
-                throw new Error("Credentials invalid");
-              }
-            });
-          } else {
-            throw new Error("Network response was not ok");
-          }
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setIsLoading(false);
-        console.log(data);
-
-        if (data.token && data.user) {
-          // Handle successful signup
-
-          // store token n user deets
-          localStorage.setItem("token", data.token);
-
-          const userProperties = ["id", "email", "name"];
-          userProperties.forEach((property) => {
-            localStorage.setItem(
-              `user${property.charAt(0).toUpperCase() + property.slice(1)}`,
-              data.user[property]
-            );
-          });
-          setIsTokenValid(true);
-          setIsLoggedIn(true);
-        } else if (data.error) {
-          setError(data.error);
-        }
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        setError(error.message);
-      });
-  };
-
-  const handleSignin = (formData) => {
-    setIsLoading(true);
-    setError(null);
-    const url = "http://127.0.0.1:3000/auth/signin";
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user: {
-          email: formData.email,
-          password: formData.password,
-        },
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          setIsLoading(false);
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data);
-        if (data.user && data.token !== "not found") {
-          setIsLoading(false);
-          // Successful authentication
-          // store token in localstorage
-          localStorage.setItem("token", data.token);
-          console.log("Token: " + localStorage.getItem("token"));
-
-          // store userData
-          const userProperties = ["id", "email", "name"];
-          userProperties.forEach((property) => {
-            localStorage.setItem(
-              `user${property.charAt(0).toUpperCase() + property.slice(1)}`,
-              data.user[property]
-            );
-            console.log(
-              `${property.charAt(0).toUpperCase() + property.slice(1)}: ` +
-                localStorage.getItem(
-                  `user${property.charAt(0).toUpperCase() + property.slice(1)}`
-                )
-            );
-          });
-          setIsTokenValid(true);
-          setIsLoggedIn(true);
-        } else {
-          setIsLoading(false);
-          setError("User not found");
-        }
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        console.error(error);
-        setError(error);
-      });
   };
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log("handleSubmit called");
-    if (!showSignup) {
-      handleSignin(formData);
+    if (showSignup) {
+      handleSignup(event);
     } else {
-      handleSignup(formData);
+      handleSignin(event);
     }
   };
-  const resetForm = () => {
-    setFormData({
-      email: "",
-      password: "",
-      name: "",
-      password_confirmation: "",
-    });
+
+  const handleAuthResponse = async (response) => {
+    if (response.ok) {
+      const responseData = await response.json();
+
+      // Check for the presence of the required fields in the response data
+      if (
+        responseData.data &&
+        responseData.data.email &&
+        responseData.data.uid
+      ) {
+        // Store tokens in localStorage
+        localStorage.setItem(
+          "access-token",
+          response.headers.get("access-token")
+        );
+        localStorage.setItem("uid", response.headers.get("uid"));
+        localStorage.setItem("client", response.headers.get("client"));
+
+        // Set isLoggedIn to true only when the response is successful
+        setIsLoggedIn(true);
+      } else {
+        // Handle the case when the response data does not contain the required fields
+        console.error("Authentication Error: Invalid response data");
+      }
+    } else {
+      // Handle the error response, show error messages, etc.
+      console.error("Authentication Error:", response.status);
+    }
   };
+
+  const userSession = () => {
+    const accessToken = localStorage.getItem("access-token");
+    const uid = localStorage.getItem("uid");
+    const client = localStorage.getItem("client");
+
+    // Check if all the required tokens are present
+    const loggedIn = !!accessToken && !!uid && !!client;
+
+    // Set the isLoggedIn state based on the user session status
+    setIsLoggedIn(loggedIn);
+  };
+  // Call userSession when the component mounts to check the session status
+  useEffect(() => {
+    userSession();
+  }, []);
   return (
     <>
       <div className="form-container mb-1">
@@ -173,46 +120,30 @@ export default function LoginPage(props) {
         </div>
         <form onSubmit={handleSubmit} className="font-color-primary">
           <div className="mb-3">
-            {showSignup && (
+            {showSignup ? (
               <>
                 <div className="form-group mb-1">
-                  <label htmlFor="name">Name</label>
+                  <label htmlFor="email">Email</label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
+                    name="email"
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
                     className="form-control"
-                    placeholder="Name"
+                    placeholder="sample@email.com"
                   />
                 </div>
-              </>
-            )}
-            <div className="form-group mb-1">
-              <label htmlFor="email">Email</label>
-              <input
-                type="text"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="form-control"
-                placeholder="sample@email.com"
-              />
-            </div>
-            <div className="form-group mb-1">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="form-control"
-                placeholder="Password"
-              />
-            </div>
-
-            {showSignup && (
-              <>
+                <div className="form-group mb-1">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    className="form-control"
+                    placeholder="Password"
+                  />
+                </div>
                 <div className="form-group mb-1">
                   <label htmlFor="password-confirmation">
                     Confirm Password
@@ -220,16 +151,39 @@ export default function LoginPage(props) {
                   <input
                     type="password"
                     name="password_confirmation"
-                    value={formData.password_confirmation}
-                    onChange={handleChange}
+                    value={signupPasswordConfirm}
+                    onChange={(e) => setSignupPasswordConfirm(e.target.value)}
                     className="form-control"
                     placeholder="Password confirmation"
                   />
                 </div>
               </>
+            ) : (
+              <>
+                <div className="form-group mb-1">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    type="text"
+                    name="email"
+                    value={signinEmail}
+                    onChange={(e) => setSigninEmail(e.target.value)}
+                    className="form-control"
+                    placeholder="sample@email.com"
+                  />
+                </div>
+                <div className="form-group mb-1">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={signinPassword}
+                    onChange={(e) => setSigninPassword(e.target.value)}
+                    className="form-control"
+                    placeholder="Password"
+                  />
+                </div>
+              </>
             )}
-            {isLoading && <div>Loading</div>}
-            {error && <div className="text-danger">{error}</div>}
           </div>
 
           <div className="button-container">

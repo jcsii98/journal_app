@@ -1,39 +1,21 @@
 export default function Header(props) {
-  const {
-    activeTab,
-    setActiveTab,
-    addCategory,
-    setAddTask,
-    setAddCategory,
-    isLoggedIn,
-    setIsLoggedIn,
-    setIsTokenValid,
-    isTokenValid,
-    setIsEditing,
-  } = props;
-  const handleSignout = () => {
-    localStorage.clear();
-    console.log("Token: " + localStorage.getItem("token"));
-    setIsLoggedIn(false);
-    setIsTokenValid(false);
-    setAddTask(false);
-    setAddCategory(false);
-    setActiveTab(null);
-    // render login page
-  };
-  const nameExists = localStorage.getItem("userName");
-  const toggleAddCategory = () => {
-    setAddTask(false);
-    setIsEditing(false);
-    setAddCategory((prevState) => !prevState);
+  const { isLoggedIn, setIsLoggedIn } = props;
 
-    console.log("toggle clicked");
+  const handleSignout = (e) => {
+    e.preventDefault();
+    console.log("Logging out");
+    // Remove stored tokens or any other logic for handling signout
+    localStorage.removeItem("access-token");
+    localStorage.removeItem("uid");
+    localStorage.removeItem("client");
+    setIsLoggedIn(false); // Set isLoggedIn to false when signing out
   };
+
   return (
     <div className="ff-primary header align-items-center display-flex flex-row bb-1 mb-1">
-      {nameExists && isTokenValid ? (
+      {isLoggedIn ? (
         <h1 className="fw-700 font-color-secondary">{`Hello, ${localStorage.getItem(
-          "userName"
+          "uid"
         )}!`}</h1>
       ) : (
         <>
@@ -41,7 +23,7 @@ export default function Header(props) {
         </>
       )}
 
-      {isTokenValid && (
+      {isLoggedIn && (
         <>
           <div className="header-btns">
             <button

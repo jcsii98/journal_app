@@ -2,8 +2,9 @@ import React, { useState } from "react";
 
 export default function CategoryForm(props) {
   const {
-    setIsEditing,
-    isEditing,
+    categoryName,
+    setIsEditingCategory,
+    isEditingCategory,
     handleUpdateCategory,
     setAddCategory,
     handleSubmitCategory,
@@ -22,9 +23,9 @@ export default function CategoryForm(props) {
   };
 
   const handleSubmit = (event) => {
-    setError(null);
     event.preventDefault();
-    if (!isEditing) {
+    setFormIsLoading(true);
+    if (!isEditingCategory) {
       handleSubmitCategory(formData);
     } else {
       handleUpdateCategory(formData);
@@ -32,14 +33,18 @@ export default function CategoryForm(props) {
   };
   const cancelEdit = () => {
     setFormIsLoading(false);
-    setIsEditing(false);
+    setIsEditingCategory(false);
   };
   return (
     <>
       <div className="form-container">
         <div className="mb-3">
           <h1 className="fw-700 font-color-primary">
-            {isEditing ? <>Edit Category</> : <>Submit a new category</>}
+            {isEditingCategory ? (
+              <>Edit Category</>
+            ) : (
+              <>Submit a new category</>
+            )}
           </h1>
         </div>
         <form className="font-color-primary" onSubmit={handleSubmit}>
@@ -60,7 +65,7 @@ export default function CategoryForm(props) {
           </div>
           {error && <div className="text-danger mb-3">{error}</div>}
           {formIsLoading && <div className="text-muted mb-3">Loading</div>}
-          {isEditing && (
+          {isEditingCategory && (
             <>
               <button
                 onClick={cancelEdit}
