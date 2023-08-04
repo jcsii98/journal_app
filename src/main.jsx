@@ -1,6 +1,5 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import AuthPage from "./pages/authPage.jsx";
 import App from "./App.jsx";
 import "./styles.css";
 import "./index.css";
