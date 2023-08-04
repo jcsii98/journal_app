@@ -15,7 +15,7 @@ export default function CategoryForm(props) {
     setFormIsLoading,
   } = props;
   const [formData, setFormData] = useState({
-    category_name: "",
+    category_name: categoryName || "",
   });
 
   const handleChange = (event) => {

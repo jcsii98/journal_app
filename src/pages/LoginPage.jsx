@@ -14,7 +14,7 @@ export default function LoginPage(props) {
   const [signinEmail, setSigninEmail] = useState("");
   const [signinPassword, setSigninPassword] = useState("");
 
-  const API_URL = "https://journal-api-cxui.onrender.com/auth";
+  const API_URL = "http://127.0.0.1:3000/auth";
 
   const handleSignup = async (event) => {
     event.preventDefault();
@@ -95,21 +95,6 @@ export default function LoginPage(props) {
     }
   };
 
-  const userSession = () => {
-    const accessToken = localStorage.getItem("access-token");
-    const uid = localStorage.getItem("uid");
-    const client = localStorage.getItem("client");
-
-    // Check if all the required tokens are present
-    const loggedIn = !!accessToken && !!uid && !!client;
-
-    // Set the isLoggedIn state based on the user session status
-    setIsLoggedIn(loggedIn);
-  };
-  // Call userSession when the component mounts to check the session status
-  useEffect(() => {
-    userSession();
-  }, []);
   return (
     <>
       <div className="form-container mb-1">
@@ -195,7 +180,7 @@ export default function LoginPage(props) {
               <button
                 type="button"
                 onClick={handleSignupToggle}
-                className="mx-3 btn btn-link"
+                className="mx-3 btn-link"
               >
                 {" "}
                 {showSignup ? (

@@ -34,9 +34,11 @@ export default function MainDash(props) {
   const uid = localStorage.getItem("uid");
   const client = localStorage.getItem("client");
 
+  // editing info
+  const [categoryName, setCategoryName] = useState("");
   const fetchFocus = () => {
     console.log("fetch focus called");
-    fetch("https://journal-api-cxui.onrender.com/categories/tasks/due_today", {
+    fetch("http://127.0.0.1:3000/categories/tasks/due_today", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -63,7 +65,7 @@ export default function MainDash(props) {
 
   const fetchCategories = () => {
     console.log("fetch called");
-    fetch("https://journal-api-cxui.onrender.com/categories", {
+    fetch("http://127.0.0.1:3000/categories", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -102,7 +104,7 @@ export default function MainDash(props) {
     event.preventDefault();
     setFormIsLoading(true);
     // Create or update the category
-    const url = "https://journal-api-cxui.onrender.com/categories";
+    const url = "http://127.0.0.1:3000/categories";
     const method = "POST";
 
     fetch(url, {
@@ -144,7 +146,7 @@ export default function MainDash(props) {
   const handleDeleteCategory = () => {
     const method = "DELETE";
 
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}?`;
+    const url = `http://127.0.0.1:3000/categories/${catId}?`;
     fetch(url, {
       method: method,
       headers: {
@@ -185,7 +187,7 @@ export default function MainDash(props) {
     event.preventDefault();
     const method = "PUT";
 
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}`;
+    const url = `http://127.0.0.1:3000/categories/${catId}`;
     fetch(url, {
       method: method,
       headers: {
@@ -226,7 +228,7 @@ export default function MainDash(props) {
 
   const fetchCategoryData = (categoryId) => {
     console.log("categoryId:", categoryId);
-    const url = `https://journal-api-cxui.onrender.com/categories/${categoryId}/tasks`;
+    const url = `http://127.0.0.1:3000/categories/${categoryId}/tasks`;
 
     fetch(url, {
       method: "GET",
@@ -257,7 +259,7 @@ export default function MainDash(props) {
   const handleSubmitTask = (formData) => {
     console.log("Form Data:", formData);
     // create task
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks`;
+    const url = `http://127.0.0.1:3000/categories/${catId}/tasks`;
     const method = "POST";
 
     fetch(url, {
@@ -355,7 +357,7 @@ export default function MainDash(props) {
   };
 
   const handleEditTaskSubmit = (formData) => {
-    const url = `https://journal-api-cxui.onrender.com/categories/${editTaskCategoryId}/tasks/${editTaskId}`;
+    const url = `http://127.0.0.1:3000/categories/${editTaskCategoryId}/tasks/${editTaskId}`;
     const method = "PUT";
 
     fetch(url, {
@@ -399,7 +401,7 @@ export default function MainDash(props) {
   };
   const handleDeleteTask = () => {
     const method = "DELETE";
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks/${editTaskId}`;
+    const url = `http://127.0.0.1:3000/categories/${catId}/tasks/${editTaskId}`;
     fetch(url, {
       method: method,
       headers: {
@@ -500,6 +502,7 @@ export default function MainDash(props) {
               )}
               {categories.map((category) => (
                 <BodyButton
+                  setCategoryName={setCategoryName}
                   setIsEditingTask={setIsEditingTask}
                   fetchCategoryData={fetchCategoryData}
                   setActiveTab={setActiveTab}
@@ -537,7 +540,7 @@ export default function MainDash(props) {
               isEditingCategory={isEditingCategory}
               handleSubmitCategory={handleSubmitCategory}
               handleUpdateCategory={handleUpdateCategory}
-              // categoryName={categoryName}
+              categoryName={categoryName}
             />
           ) : addTask || isEditingTask ? (
             <>

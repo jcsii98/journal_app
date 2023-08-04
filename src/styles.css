@@ -250,6 +250,21 @@ body {
 .btn-link {
   padding: 0 !important;
   color: #242325;
+  --bs-btn-font-weight: 400;
+  --bs-btn-color: var(--bs-link-color);
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: transparent;
+  --bs-btn-hover-color: #3e5c76;
+  --bs-btn-hover-border-color: transparent;
+  --bs-btn-active-color: #3e5c76;
+  --bs-btn-active-border-color: transparent;
+  --bs-btn-disabled-color: #6c757d;
+  --bs-btn-disabled-border-color: transparent;
+  --bs-btn-box-shadow: 0 0 0 #000;
+  --bs-btn-focus-shadow-rgb: 49, 132, 253;
+  text-decoration: underline;
+  border: none;
+  background: none;
 }
 /* utility classes */
 .my-1 {

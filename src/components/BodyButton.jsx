@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Edit from "../assets/edit.png";
 export default function BodyButton(props) {
   const {
+    setCategoryName,
     setAddCategory,
     setAddTask,
     setIsTokenValid,
@@ -29,6 +30,7 @@ export default function BodyButton(props) {
       if (buttonClicked === previousBtn) {
         setActiveTab(null);
       } else {
+        setCategoryName(category.name);
         fetchCategoryData(category.id);
         handleActiveTabChange(category.id);
       }
