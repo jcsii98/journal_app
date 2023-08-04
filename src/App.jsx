@@ -31,6 +31,7 @@ function App() {
 
         // Assuming your backend returns a JSON response with a "valid" property
         const data = await response.json();
+        console.log(data);
         const isValidTokens = data.valid;
 
         // Set the isLoggedIn state based on token validation status
