@@ -4,6 +4,8 @@ export default function LoginPage(props) {
   const { setIsLoggedIn } = props;
   // state variables for loginPage
   const [showSignup, setShowSignup] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // state variables for signup
   const [signupEmail, setSignupEmail] = useState("");
@@ -14,14 +16,10 @@ export default function LoginPage(props) {
   const [signinEmail, setSigninEmail] = useState("");
   const [signinPassword, setSigninPassword] = useState("");
 
-  const API_URL = "https://journal-api-cxui.onrender.com/auth";
+  const API_URL = "http://127.0.0.1:3000/auth";
 
   const handleSignup = async (event) => {
     event.preventDefault();
-    if (signupPassword !== signupPasswordConfirm) {
-      alert("Passwords do not match");
-      return;
-    }
 
     const requestData = {
       email: signupEmail,
@@ -54,10 +52,18 @@ export default function LoginPage(props) {
 
   const handleSignupToggle = (event) => {
     event.preventDefault();
+    setError("");
     setShowSignup((prevState) => !prevState);
+    setSignupEmail("");
+    setSignupPassword("");
+    setSignupPasswordConfirm("");
+    setSigninEmail("");
+    setSigninPassword("");
   };
   const handleSubmit = (event) => {
     event.preventDefault();
+    setIsLoading(true);
+    setError("");
     if (showSignup) {
       handleSignup(event);
     } else {
@@ -67,13 +73,15 @@ export default function LoginPage(props) {
 
   const handleAuthResponse = async (response) => {
     if (response.ok) {
+      console.log("response is ok");
       const responseData = await response.json();
 
       // Check for the presence of the required fields in the response data
       if (
         responseData.data &&
         responseData.data.email &&
-        responseData.data.uid
+        responseData.data.uid &&
+        !responseData.data.errors
       ) {
         // Store tokens in localStorage
         localStorage.setItem(
@@ -85,14 +93,24 @@ export default function LoginPage(props) {
 
         // Set isLoggedIn to true only when the response is successful
         setIsLoggedIn(true);
+        // setError(""); // Reset the error state when login is successful
       } else {
         // Handle the case when the response data does not contain the required fields
         console.error("Authentication Error: Invalid response data");
       }
     } else {
+      console.log("response is not ok");
       // Handle the error response, show error messages, etc.
-      console.error("Authentication Error:", response.status);
+      const errorResponseData = await response.json();
+      if (errorResponseData.errors && errorResponseData.errors.full_messages) {
+        setError(errorResponseData.errors.full_messages.join(", "));
+      } else if (errorResponseData.errors) {
+        setError(errorResponseData.errors.join(", "));
+      } else {
+        setError("Authentication Error: " + response.status);
+      }
     }
+    setIsLoading(false);
   };
 
   return (
@@ -169,6 +187,8 @@ export default function LoginPage(props) {
                 </div>
               </>
             )}
+            {isLoading && <div className="form-group mb-1">Loading</div>}
+            {error && <div className="text-danger mb-3">{error}</div>}
           </div>
 
           <div className="button-container">

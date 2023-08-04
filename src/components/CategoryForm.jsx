@@ -2,20 +2,21 @@ import React, { useState } from "react";
 
 export default function CategoryForm(props) {
   const {
+    setCategoryName,
     categoryName,
     setIsEditingCategory,
     isEditingCategory,
     handleUpdateCategory,
     setAddCategory,
     handleSubmitCategory,
-    error,
-    setError,
     handleDeleteCategory,
     formIsLoading,
     setFormIsLoading,
+    error,
+    setError,
   } = props;
   const [formData, setFormData] = useState({
-    category_name: categoryName || "",
+    category_name: categoryName,
   });
 
   const handleChange = (event) => {
@@ -24,6 +25,7 @@ export default function CategoryForm(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    setError("");
     setFormIsLoading(true);
     if (!isEditingCategory) {
       handleSubmitCategory(formData);
@@ -32,6 +34,8 @@ export default function CategoryForm(props) {
     }
   };
   const cancelEdit = () => {
+    setCategoryName("");
+    setError("");
     setFormIsLoading(false);
     setIsEditingCategory(false);
   };

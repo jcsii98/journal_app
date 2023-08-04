@@ -8,7 +8,7 @@ export default function MainDash(props) {
   const [categories, setCategories] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [isEditingTask, setIsEditingTask] = useState(false);
   const [formIsLoading, setFormIsLoading] = useState(false);
   const [editTaskId, setEditTaskId] = useState("");
@@ -36,9 +36,37 @@ export default function MainDash(props) {
 
   // editing info
   const [categoryName, setCategoryName] = useState("");
+  const [taskData, setTaskData] = useState({
+    name: "",
+    body: "",
+    due_date: "",
+  });
+  const toggleEditTask = (
+    categoryName,
+    categoryBody,
+    categoryDueDate,
+    taskId,
+    categoryId
+  ) => {
+    // Update the state with the category properties when the button is clicked
+    setTaskData({
+      name: categoryName,
+      body: categoryBody,
+      due_date: categoryDueDate,
+    });
+
+    setDeleted(false);
+    setError(false);
+    console.log("Toggle Edit Task Called");
+    setIsEditingTask((prevState) => !prevState);
+    setEditTaskId(taskId);
+    setEditTaskCategoryId(categoryId);
+    console.log("Task ID:", taskId);
+  };
+
   const fetchFocus = () => {
     console.log("fetch focus called");
-    fetch("https://journal-api-cxui.onrender.com/categories/tasks/due_today", {
+    fetch("http://127.0.0.1:3000/categories/tasks/due_today", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -58,6 +86,8 @@ export default function MainDash(props) {
   };
 
   const toggleAddCategory = () => {
+    setCategoryName("");
+    setError("");
     setAddCategory((prevState) => !prevState);
 
     console.log("toggle clicked");
@@ -65,7 +95,7 @@ export default function MainDash(props) {
 
   const fetchCategories = () => {
     console.log("fetch called");
-    fetch("https://journal-api-cxui.onrender.com/categories", {
+    fetch("http://127.0.0.1:3000/categories", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -102,9 +132,8 @@ export default function MainDash(props) {
 
   const handleSubmitCategory = (formData) => {
     event.preventDefault();
-    setFormIsLoading(true);
     // Create or update the category
-    const url = "https://journal-api-cxui.onrender.com/categories";
+    const url = "http://127.0.0.1:3000/categories";
     const method = "POST";
 
     fetch(url, {
@@ -146,7 +175,7 @@ export default function MainDash(props) {
   const handleDeleteCategory = () => {
     const method = "DELETE";
 
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}?`;
+    const url = `http://127.0.0.1:3000/categories/${catId}?`;
     fetch(url, {
       method: method,
       headers: {
@@ -183,11 +212,10 @@ export default function MainDash(props) {
   };
 
   const handleUpdateCategory = (formData) => {
-    setFormIsLoading(true);
     event.preventDefault();
     const method = "PUT";
 
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}`;
+    const url = `http://127.0.0.1:3000/categories/${catId}`;
     fetch(url, {
       method: method,
       headers: {
@@ -228,7 +256,7 @@ export default function MainDash(props) {
 
   const fetchCategoryData = (categoryId) => {
     console.log("categoryId:", categoryId);
-    const url = `https://journal-api-cxui.onrender.com/categories/${categoryId}/tasks`;
+    const url = `http://127.0.0.1:3000/categories/${categoryId}/tasks`;
 
     fetch(url, {
       method: "GET",
@@ -259,7 +287,7 @@ export default function MainDash(props) {
   const handleSubmitTask = (formData) => {
     console.log("Form Data:", formData);
     // create task
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks`;
+    const url = `http://127.0.0.1:3000/categories/${catId}/tasks`;
     const method = "POST";
 
     fetch(url, {
@@ -298,6 +326,7 @@ export default function MainDash(props) {
       .catch((error) => {
         console.error(error);
       });
+    setFormIsLoading(false);
   };
 
   const navContainerRef = useRef(null);
@@ -340,24 +369,20 @@ export default function MainDash(props) {
 
   const toggleAddTask = () => {
     setDeleted(false);
-    setError(false);
+    setError("");
     setAddCategory(false);
+    setTaskData({
+      name: "",
+      body: "",
+      due_date: "",
+    });
     setAddTask((prevState) => !prevState);
 
     console.log("toggle clicked");
   };
-  const toggleEditTask = (taskId, categoryId) => {
-    setDeleted(false);
-    setError(false);
-    console.log("Toggle Edit Task Called");
-    setIsEditingTask((prevState) => !prevState);
-    setEditTaskId(taskId);
-    setEditTaskCategoryId(categoryId);
-    console.log("Task ID:", taskId);
-  };
 
   const handleEditTaskSubmit = (formData) => {
-    const url = `https://journal-api-cxui.onrender.com/categories/${editTaskCategoryId}/tasks/${editTaskId}`;
+    const url = `http://127.0.0.1:3000/categories/${editTaskCategoryId}/tasks/${editTaskId}`;
     const method = "PUT";
 
     fetch(url, {
@@ -380,28 +405,34 @@ export default function MainDash(props) {
         if (response.ok) {
           return response.json();
         } else {
-          throw new Error("Failed to edit task");
+          return response.json().then((data) => {
+            throw new Error(data.errors.join(", "));
+          });
         }
       })
       .then((data) => {
         console.log(data);
-        if (data.id) {
-          console.log("data.id exists");
+        if (data.success) {
+          // Check for the success field in the data
+          console.log("Task update successful");
           setAddCategory(false);
           setIsEditingTask(false);
           setAddTask(false);
           fetchCategories();
-          fetchCategoryData(data.category_id);
+          fetchCategoryData(data.data.category_id); // Use data.data to access the task properties
           fetchFocus();
         }
       })
       .catch((error) => {
-        console.error(error);
+        console.error(error.message);
+        setError(error.message); // Set the error state with the error message
       });
+    setFormIsLoading(false);
   };
+
   const handleDeleteTask = () => {
     const method = "DELETE";
-    const url = `https://journal-api-cxui.onrender.com/categories/${catId}/tasks/${editTaskId}`;
+    const url = `http://127.0.0.1:3000/categories/${editTaskCategoryId}/tasks/${editTaskId}`;
     fetch(url, {
       method: method,
       headers: {
@@ -424,6 +455,7 @@ export default function MainDash(props) {
           setDeleted(true);
           setIsEditingTask(false);
           setAddTask(false);
+          fetchCategories();
           fetchCategoryData(activeTab);
           fetchFocus();
         }
@@ -541,6 +573,7 @@ export default function MainDash(props) {
               handleSubmitCategory={handleSubmitCategory}
               handleUpdateCategory={handleUpdateCategory}
               categoryName={categoryName}
+              setCategoryName={setCategoryName}
             />
           ) : addTask || isEditingTask ? (
             <>
@@ -554,9 +587,12 @@ export default function MainDash(props) {
                 setIsEditingTask={setIsEditingTask}
                 handleSubmitTask={handleSubmitTask}
                 handleEditTaskSubmit={handleEditTaskSubmit}
+                taskData={taskData}
+                setTaskData={setTaskData}
               />
             </>
-          ) : categoryData.length > 0 && (activeTab || focusClicked) ? (
+          ) : categoryData.length > 0 &&
+            (activeTab || (focusClicked && focusData.length > 0)) ? (
             <>
               {console.log(categoryData)}
               <div className="accordion-container my-1">
@@ -612,6 +648,9 @@ export default function MainDash(props) {
                             <button
                               onClick={() =>
                                 toggleEditTask(
+                                  category.name,
+                                  category.body,
+                                  category.due_date,
                                   category.id,
                                   category.category_id
                                 )

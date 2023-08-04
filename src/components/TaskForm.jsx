@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 export default function TaskForm(props) {
   const {
+    setTaskData,
+    taskData,
     handleDeleteTask,
     isEditingTask,
     setIsEditingTask,
@@ -13,12 +15,15 @@ export default function TaskForm(props) {
     setFormIsLoading,
   } = props;
   const [formData, setFormData] = useState({
-    task_name: "",
-    task_body: "",
-    task_due_date: "",
+    task_name: taskData.name,
+    task_body: taskData.body,
+    task_due_date: taskData.due_date || "",
   });
 
   const cancelEdit = () => {
+    setTaskData("");
+    setError("");
+    setFormIsLoading(false);
     setIsEditingTask(false);
   };
 
@@ -28,7 +33,8 @@ export default function TaskForm(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    setError(null);
+    setError("");
+    setFormIsLoading(true);
     // Check the value of formData.task_due_date
     console.log("Due Date Value:", formData.task_due_date);
 
@@ -48,26 +54,6 @@ export default function TaskForm(props) {
       });
     }
   };
-
-  // const formatDateForBackend = (dateString, userTimeZone) => {
-  //   // Parse the input date string using the user's time zone
-  //   const userDate = new Date(`${dateString}T12:00:00${userTimeZone}`);
-
-  //   // Get the user's local date in UTC by subtracting the time zone offset in milliseconds
-  //   const utcDate = new Date(
-  //     userDate.getTime() - userDate.getTimezoneOffset() * 60000
-  //   );
-
-  //   // Get the UTC year, month, and day components
-  //   const utcYear = utcDate.getUTCFullYear();
-  //   const utcMonth = String(utcDate.getUTCMonth() + 1).padStart(2, "0");
-  //   const utcDay = String(utcDate.getUTCDate()).padStart(2, "0");
-
-  //   // Assemble the formatted date in "YYYY-MM-DD" format
-  //   const formattedDate = `${utcYear}-${utcMonth}-${utcDay}`;
-
-  //   return formattedDate;
-  // };
 
   return (
     <>
@@ -119,7 +105,7 @@ export default function TaskForm(props) {
             </div>
           </div>
           {formIsLoading && <div className="text-muted mb-3">Loading</div>}
-          {error && <div className="alert alert-error mb-3">{error}</div>}
+          {error && <div className="text-danger mb-3">{error}</div>}
 
           <button className="mr-1 btn-primary btn" type="submit">
             Submit Task
