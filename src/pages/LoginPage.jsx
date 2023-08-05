@@ -76,14 +76,12 @@ export default function LoginPage(props) {
       console.log("response is ok");
       const responseData = await response.json();
 
-      // Check for the presence of the required fields in the response data
       if (
         responseData.data &&
         responseData.data.email &&
         responseData.data.uid &&
         !responseData.data.errors
       ) {
-        // Store tokens in localStorage
         localStorage.setItem(
           "access-token",
           response.headers.get("access-token")
@@ -91,16 +89,14 @@ export default function LoginPage(props) {
         localStorage.setItem("uid", response.headers.get("uid"));
         localStorage.setItem("client", response.headers.get("client"));
 
-        // Set isLoggedIn to true only when the response is successful
         setIsLoggedIn(true);
-        // setError(""); // Reset the error state when login is successful
+        setError("");
       } else {
-        // Handle the case when the response data does not contain the required fields
         console.error("Authentication Error: Invalid response data");
       }
     } else {
       console.log("response is not ok");
-      // Handle the error response, show error messages, etc.
+
       const errorResponseData = await response.json();
       if (errorResponseData.errors && errorResponseData.errors.full_messages) {
         setError(errorResponseData.errors.full_messages.join(", "));

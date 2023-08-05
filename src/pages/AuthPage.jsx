@@ -24,7 +24,6 @@ const AuthPage = () => {
     };
 
     const response = await fetch(`${API_URL}`, {
-      // Use the standard user registration route
       method: "POST",
       body: JSON.stringify(requestData),
       headers: { "Content-Type": "application/json" },

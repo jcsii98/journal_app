@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import CategoryForm from "../components/CategoryForm";
 import TaskForm from "../components/TaskForm";
 import Edit from "../assets/edit.png";
+
 export default function MainDash(props) {
   const {} = props;
   const [categories, setCategories] = useState([]);
@@ -359,7 +360,6 @@ export default function MainDash(props) {
       navContainer.addEventListener("mouseleave", disableScrollOnHover);
 
       return () => {
-        // Clean up the event listeners when the component unmounts
         navContainer.removeEventListener("wheel", handleScroll);
         navContainer.removeEventListener("mouseenter", enableScrollOnHover);
         navContainer.removeEventListener("mouseleave", disableScrollOnHover);
@@ -413,19 +413,18 @@ export default function MainDash(props) {
       .then((data) => {
         console.log(data);
         if (data.success) {
-          // Check for the success field in the data
           console.log("Task update successful");
           setAddCategory(false);
           setIsEditingTask(false);
           setAddTask(false);
           fetchCategories();
-          fetchCategoryData(data.data.category_id); // Use data.data to access the task properties
+          fetchCategoryData(data.data.category_id);
           fetchFocus();
         }
       })
       .catch((error) => {
         console.error(error.message);
-        setError(error.message); // Set the error state with the error message
+        setError(error.message);
       });
     setFormIsLoading(false);
   };
@@ -501,8 +500,7 @@ export default function MainDash(props) {
         >
           {isLoading ? (
             <>Loading</>
-          ) : // Rest of your code for categories and accordion
-          categories.length > 0 ? (
+          ) : categories.length > 0 ? (
             <div
               className="slider-nav btn-group btn-group-toggle"
               data-toggle="buttons"

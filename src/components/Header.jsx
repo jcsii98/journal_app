@@ -8,7 +8,7 @@ export default function Header(props) {
     localStorage.removeItem("access-token");
     localStorage.removeItem("uid");
     localStorage.removeItem("client");
-    setIsLoggedIn(false); // Set isLoggedIn to false when signing out
+    setIsLoggedIn(false);
   };
 
   return (
