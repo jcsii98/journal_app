@@ -15,6 +15,7 @@ export default function BodyButton(props) {
     setIsEditingCategory,
     fetchCategoryData,
     setIsEditingTask,
+    setFocusClicked,
   } = props;
   const [isActive, setIsActive] = useState(false);
 
@@ -27,6 +28,7 @@ export default function BodyButton(props) {
 
     if (event.target.tagName === "LABEL" || event.target.tagName === "DIV") {
       setAddCategory(false);
+      setFocusClicked(false);
       if (buttonClicked === previousBtn) {
         setActiveTab(null);
       } else {

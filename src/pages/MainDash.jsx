@@ -485,6 +485,7 @@ export default function MainDash(props) {
       setActiveTab("focus");
     }
   };
+
   const formatDateToWordFormat = (dateString) => {
     const date = new Date(dateString);
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -532,6 +533,7 @@ export default function MainDash(props) {
               )}
               {categories.map((category) => (
                 <BodyButton
+                  setFocusClicked={setFocusClicked}
                   setCategoryName={setCategoryName}
                   setIsEditingTask={setIsEditingTask}
                   fetchCategoryData={fetchCategoryData}
@@ -589,8 +591,7 @@ export default function MainDash(props) {
                 setTaskData={setTaskData}
               />
             </>
-          ) : categoryData.length > 0 &&
-            (activeTab || (focusClicked && focusData.length > 0)) ? (
+          ) : categoryData.length > 0 && (activeTab || focusClicked) ? (
             <>
               {console.log(categoryData)}
               <div className="accordion-container my-1">
